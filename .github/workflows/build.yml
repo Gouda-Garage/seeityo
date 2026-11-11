@@ -1,0 +1,28 @@
+name: Build BIG APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip source
+        run: unzip -oq BIG-android-src.zip -d src
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.11.1' }
+      - name: Build release APK
+        run: cd src && gradle assembleRelease --no-daemon
+      - run: cp src/app/build/outputs/apk/release/app-release.apk BIG.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: BIG prototype build ${{ github.run_number }}
+          body: "Android prototype. Download BIG.apk on your phone, open it, allow install unknown apps if asked."
+          files: BIG.apk
