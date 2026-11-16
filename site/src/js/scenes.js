@@ -50,7 +50,7 @@
     ctx.fillStyle = "#3a1c10"; ctx.textAlign = "center"; ctx.font = (u * 3.1) + "px Rye, Georgia, serif";
     ctx.fillText("THE GARAGE KITCHEN", 0, y0 + u * 2);
     ctx.font = u * .9 + "px 'Space Mono', monospace"; ctx.fillStyle = "#6b4a2a";
-    ctx.fillText("WOOD FIRE · SMALL PLATES · EST. 1998 · DENVER", 0, y0 + u * 4);
+    ctx.fillText("WOOD FIRE · SMALL PLATES · EST. 1998", 0, y0 + u * 4);
     ctx.textAlign = "left";
     function col(x, y, title, items) {
       ctx.font = "700 " + u * .95 + "px 'Space Mono', monospace"; ctx.fillStyle = "#8a3b12"; ctx.textAlign = "left";
@@ -119,7 +119,7 @@
     var y = para(ctx, "Aged red peppers, distilled vinegar, water, salt, garlic powder, onion powder, xanthan gum, natural smoke flavor, citric acid, sodium benzoate (to protect freshness).", x1, top + u * 1.6, cwid, u * 1.35);
     ctx.font = "700 " + u * .85 + "px 'Space Mono', monospace"; ctx.fillText("CONTAINS: NO COMMON ALLERGENS", x1, y + u * .8);
     ctx.font = u * .85 + "px Georgia, serif"; ctx.fillStyle = "#5d4a32";
-    para(ctx, "Shake well. Refrigerate after opening and use within twelve months. Made in a shared kitchen that also processes tree nuts and sesame. Best by 03/2028. Lot 22-117. Distributed by Garage Heat Co., Denver, CO.", x1, y + u * 3, cwid, u * 1.3);
+    para(ctx, "Shake well. Refrigerate after opening and use within twelve months. Made in a shared kitchen that also processes tree nuts and sesame. Best by 03/2028. Lot 22-117. Distributed by Garage Heat Co..", x1, y + u * 3, cwid, u * 1.3);
     var nx = lw / 2 - lw * .38, nw = lw * .33, ny = top - u * 1.2;
     ctx.fillStyle = "#2a1a10"; ctx.fillRect(nx - 3, ny - 3, nw + 6, lh * .62 + 6); ctx.fillStyle = "#efe5c8"; ctx.fillRect(nx - 1.5, ny - 1.5, nw + 3, lh * .62 + 3);
     ctx.fillStyle = "#2a1a10"; ctx.font = "700 " + u * 1.7 + "px Georgia, serif"; ctx.fillText("Nutrition Facts", nx + 6, ny + u * 2);

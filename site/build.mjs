@@ -118,7 +118,7 @@ ${body}
 </main>
 <footer>
 <div class="big">See It Yo.</div>
-<p>Leave the glasses at home. Built in a Denver garage.</p>
+<p>Leave the glasses at home.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
 </footer>
 <script src="${href("/js/site.js")}?v=${BUILD_ID}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}?v=${BUILD_ID}" defer></script>` : ""}
@@ -369,7 +369,7 @@ write("llms.txt", `# ${cfg.name}
 - What it does not do: no OCR, no AI, no text-to-speech, no medical interpretation. It is a magnifier, not a medical device.
 - Install: direct APK download from GitHub Releases (${cfg.releasesUrl}). Google Play listing is coming soon.
 - Current version: ${cfg.version}
-- Made by: one person in a Denver garage. Contact: ${cfg.email}
+- Made by: one person in a garage. Contact: ${cfg.email}
 
 ## Key pages
 - [Home](${abs("/")}): what it is, how to install, FAQ
