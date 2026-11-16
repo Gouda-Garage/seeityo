@@ -41,6 +41,7 @@ copy(path.join(ROOT, "src/js/scenes.js"), "js/scenes.js");
 
 // ---------- shared facts (single source of truth) ----------
 const FAQ = [
+  ["Is it safe to install? My phone is showing a warning.", "The warning is Android being careful about any app that doesn't come from Google Play. It isn't a verdict on this one. See It Yo asks for only two permissions, camera and vibration, and no internet permission, so it can't upload or send anything. No account, no ads, no tracking, and it saves no photos. The source code is public so anyone can check. You can also uninstall it any time like any other app. A Google Play version is coming so this warning goes away."],
   ["Does it save my photos?", "No. Frames exist only while you're looking at them. Close the app and they're gone. There's no gallery, no account and no upload. The app doesn't even ask Android for internet permission."],
   ["Does it read the text out loud or \"understand\" it?", "No. There is no OCR and no AI. It makes things bigger and brighter. That's the whole product."],
   ["Why not just use my camera app?", "You can. But the camera app makes you open it, find the zoom, pinch around and hope the flash is on. See It Yo opens already zoomed in, turns the light on by itself when it's dark, and freezes the picture with one tap."],
@@ -201,14 +202,16 @@ const landing = `
     <h2 style="margin-top:8px">Help us test it.</h2>
     <p>See It Yo is in early testing on Android. Download it free, point it at a menu, a label, or the TV across the room, and tell us if it worked. That's the whole deal.</p>
     <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Download for Android</a><a class="btn alt" href="${href("/feedback/")}">Tell us how it went</a></div>
+    <div class="safe"><strong>Your phone will show a warning. That's normal.</strong> Android warns about every app that doesn't come from Google Play, no matter who made it. It isn't a verdict on this one. Here's what you can check yourself: See It Yo asks for exactly two permissions, camera and vibration. It does not ask for internet access, so it can't send anything anywhere. No account, no ads, no tracking, no photos saved. The source code is public, so anyone can read exactly what it does. We're putting it on Google Play next so the warning goes away.</div>
     <p class="note">Android ${esc(cfg.minAndroid)}+ · version ${esc(cfg.version)} · no photos saved · no account · no ads · no tracking</p>
     <p class="note">Want a heads-up when it hits Google Play? <a href="mailto:${cfg.email}?subject=${encodeURIComponent("Tell me when See It Yo hits Google Play")}">Email us</a>.</p>
   </div>
   <div class="card">
     <h3 style="font-size:22px;margin-bottom:6px">Install in 3 steps</h3>
     <ol>
-      <li><strong>Tap the download button.</strong> Your phone may warn that this type of file can harm your device. That's the standard warning for any app that isn't from Google Play yet.</li>
-      <li><strong>Open the file.</strong> If it asks, allow installs from your browser or Files app one time, go back, and tap Install.</li>
+      <li><strong>Tap Download.</strong> Your browser may say this type of file can harm your device. That's the standard message for any app file. Tap Download anyway (or Keep).</li>
+      <li><strong>Open the file.</strong> If Android says it can't install from this source, tap Settings, switch on Allow from this source, then go back and tap Install.</li>
+      <li><strong>If Play Protect says "unknown developer" or "unrecognized app,"</strong> tap More details, then Install anyway. That's the same Google Play warning every app outside the store gets.</li>
       <li><strong>Add it to your home screen and read something small.</strong></li>
     </ol>
     <p class="note">iPhone: not yet. A softer <a href="${cfg.browserUrl}">browser version</a> works in a pinch, but a browser can't use your phone's real zoom lens.</p>

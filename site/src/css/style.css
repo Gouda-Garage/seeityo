@@ -166,3 +166,5 @@ form.fb input[type=text],form.fb textarea{width:100%;font:inherit;padding:10px;b
 .logo{white-space:nowrap}
 @media (max-width:900px){.bubble.before{left:4px;top:120px}.bubble.after{right:4px;top:260px}}
 footer .copy{font-size:13px;opacity:.7;margin-top:16px}
+.safe{margin-top:18px;padding:16px 18px;border-radius:16px;background:#eef7ee;border:1px solid #b9dcb9;color:#1f3a1f;font-size:15px;line-height:1.5;text-align:left}
+.safe strong{display:block;margin-bottom:4px;font-size:16px}
