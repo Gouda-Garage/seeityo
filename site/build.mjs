@@ -116,7 +116,7 @@ ${body}
 </main>
 <footer>
 <div class="big">See It Yo.</div>
-<p>Tiny print. One tap. Built in a Denver garage.</p>
+<p>Save it. Tap it. Read it. Built in a Denver garage.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
 </footer>
 <script src="${href("/js/site.js")}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}" defer></script>` : ""}
@@ -136,9 +136,9 @@ const landing = `
   <canvas data-scene="menu" data-lens="115" aria-hidden="true"></canvas>
   <div class="shade"></div>
   <div class="hero-in">
-    <div class="tag">Tiny print. One tap.</div>
+    <div class="tag">Save it. Tap it. Read it.</div>
     <h1>See It<span>Yo.</span></h1>
-    <p class="lede">Small print sucks. Your phone is already reading glasses. One tap and it's zoomed in. No fiddling. No BS.</p>
+    <p class="lede">Put it on your home screen. Press one big button. Read whatever you need. No digging through your camera, no pinching, no fiddling.</p>
     <div class="strip"><span class="pill live">Android beta: live now</span><span class="pill soon">Google Play: coming soon</span><span class="pill">iPhone: later</span></div>
     <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#demo">See it work</a></div>
     <p class="fine" style="margin-top:14px">Early build · free to try · saves nothing</p>
@@ -149,7 +149,7 @@ const landing = `
   <div class="wrap">
     <div class="kicker">Simulated camera view</div>
     <h2>Go on. Try to read that.</h2>
-    <p class="sub">This is what small print looks like through a phone camera in real life: dim, grainy, out of focus. Move the lens over it. That's See It Yo.</p>
+    <p class="sub">This is what small print looks like through a phone camera in real life: dim, grainy, out of focus. Now press the button. That's the whole app: the screen goes big, sharp and lit. Nothing to pinch, nothing to focus.</p>
     <div class="tabs" role="group" aria-label="Pick a scene">
       <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
       <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
@@ -157,10 +157,11 @@ const landing = `
     </div>
     <div class="stagebox">
       <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive demo: a blurry, dim camera view of small print with a lens you can move to read it"></canvas>
+      <button class="bigbtn" type="button" data-full aria-pressed="false">Press the button</button>
       <div class="hud" data-state aria-live="polite"><span class="chip" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen · drag to pan</span><span class="chip torch on" data-torch>Auto light</span></div>
     </div>
     <p class="fine caption"><span data-label>Dark restaurant. Menu print, candle light.</span></p>
-    <p class="fine caption">Move to look · Click to freeze · Drag to pan · Click again to go live</p>
+    <p class="fine caption">Move to look around · Click to freeze · Click again to go live</p>
     <p class="fine caption dim">Simulation. The real app uses your phone's camera.</p>
   </div>
 </section>
@@ -191,6 +192,15 @@ const landing = `
     <p class="fine hint">Drag the lens over the print</p>
   </div>
 </section>
+
+<section class="why" id="why"><div class="wrap">
+<div class="kicker">Why this exists</div>
+<h2>Reading small print should be easy.</h2>
+<p class="sub">Your phone can already zoom in. Getting it to do that is the pain. See It Yo skips the pain. It's made for convenience, so you can get on with your day.</p>
+<div class="vs">
+<div class="col bad"><h3>Your camera app</h3><ol><li>Unlock phone</li><li>Hunt for the camera</li><li>Pinch to zoom</li><li>Fight the focus</li><li>Dark? Find the flashlight</li><li>Photo saved to your gallery you never wanted</li></ol></div>
+<div class="col good"><h3>See It Yo</h3><ol><li>Press the button on your home screen</li><li>Read</li></ol><p style="margin:14px 0 0"><strong>That's it.</strong> It opens already zoomed in, turns the light on when it's dark, and saves nothing.</p></div>
+</div></div></section>
 
 <section id="how"><div class="wrap">
   <h2>Three moves.<br>That's the app.</h2>
@@ -263,7 +273,7 @@ const appLd = {
 const siteLd = { "@context": "https://schema.org", "@type": "WebSite", name: cfg.name, url: abs("/") };
 
 write("index.html", layout({
-  title: "See It Yo: Free Android Magnifier App for Small Print | Tiny print. One tap.",
+  title: "See It Yo: Free Android Magnifier App for Small Print | Save it. Tap it. Read it.",
   desc: "Free Android beta that turns your phone into reading glasses. One tap opens the camera already zoomed in, light on automatically. No photos saved.",
   p: "/", body: landing, ld: [siteLd, appLd, faqLd(FAQ)], showTicker: true, scenes: true,
 }));

@@ -167,7 +167,7 @@
     "  vec3 s=texture(uTex,suv).rgb; vec3 n=(texture(uTex,suv+e).rgb+texture(uTex,suv-e).rgb+texture(uTex,suv+e.yx).rgb+texture(uTex,suv-e.yx).rgb)*.25;\n" +
     "  s=clamp(s+(s-n)*.9,0.,1.5);\n" +
     "  s*=mix(1.,.72,uDark*(1.-uTorch));\n" +
-    "  s*=1.+uTorch*.22; s=mix(s,s*vec3(1.08,1.0,.88),uTorch);\n" +
+    "  s*=1.+uTorch*.22; s=mix(s,s*vec3(1.03,1.0,.95),uTorch);\n" +
     "  s+=(hash(px+uTime*57.)-.5)*.05*(1.-uFreeze)*uDark*(1.-uTorch);\n" +
     "  s=mix(s,vec3(1.),uFlash*.85);\n" +
     "  float rim=smoothstep(uR-7.,uR-1.,d); s=mix(s,vec3(.95,.9,.8),rim*.28);\n" +
@@ -195,7 +195,7 @@
     this.tex = gl.createTexture();
     this.scene = SCENES[this.opts.scene || "menu"];
     this.mouse = { x: 0, y: 0 }; this.target = { x: 0, y: 0 }; this.pan = { x: 0, y: 0 };
-    this.frozen = false; this.flash = 0; this.torch = 0; this.t0 = performance.now();
+    this.frozen = false; this.full = false; this.fr = 0; this.flash = 0; this.torch = 0; this.t0 = performance.now();
     this.lastPointer = -1e9; this.visible = false; this.running = false; this.dpr = 1; this.down = null;
     this.onState = this.opts.onState || function () { };
     this.resize(); this.bind(); this.observe();
@@ -274,7 +274,9 @@
       var k = idle ? .035 : .22; this.mouse.x += (this.target.x - this.mouse.x) * k; this.mouse.y += (this.target.y - this.mouse.y) * k;
     } else if (!this.frozen) { this.mouse = { x: this.target.x, y: this.target.y }; }
     var tt = this.scene.torch ? 1 : 0; this.torch += (tt - this.torch) * .06; this.flash *= .88;
-    var R = this.opts.lens ? this.opts.lens * this.dpr : Math.min(c.width, c.height) * .2;
+    this.fr += ((this.full ? 1 : 0) - this.fr) * .12;
+    var base = this.opts.lens ? this.opts.lens * this.dpr : Math.min(c.width, c.height) * .36;
+    var R = base + (Math.hypot(c.width, c.height) * .8 - base) * this.fr;
     gl.uniform1i(U.uTex, 0); gl.uniform2f(U.uRes, c.width, c.height); gl.uniform2f(U.uMouse, this.mouse.x, this.mouse.y); gl.uniform2f(U.uPan, this.pan.x, this.pan.y);
     gl.uniform1f(U.uR, R); gl.uniform1f(U.uZoom, this.scene.zoom);
     gl.uniform1f(U.uTime, t % 100); gl.uniform1f(U.uDark, this.scene.dark); gl.uniform1f(U.uFreeze, this.frozen ? 1 : 0);
@@ -303,6 +305,8 @@
         });
         stage.state(); stages.push(stage); cv._stage = stage;
         if (cv.hasAttribute("data-main")) {
+          var fb = tag.querySelector("[data-full]");
+          if (fb) fb.addEventListener("click", function () { stage.full = !stage.full; fb.setAttribute("aria-pressed", stage.full); fb.textContent = stage.full ? "Back to the blurry mess" : "Press the button"; if (!stage.running) stage.draw(performance.now()); });
           document.querySelectorAll("[data-pick]").forEach(function (b) {
             b.addEventListener("click", function () {
               document.querySelectorAll("[data-pick]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
