@@ -132,9 +132,9 @@
   }
 
   var SCENES = {
-    menu: { draw: paintMenu, zoom: 3.4, dark: 1, blur: 6.5, torch: 1, label: "Dark restaurant. Menu print, candle light." },
-    tv: { draw: paintTV, zoom: 4.8, dark: 1, blur: 4.5, torch: 0, label: "The TV across a dark room. Score and captions." },
-    label: { draw: paintLabel, zoom: 3.4, dark: .35, blur: 5.5, torch: 0, label: "A tiny ingredient and nutrition label." }
+    menu: { draw: paintMenu, zoom: 4, dark: 1, blur: 6.5, torch: 1, label: "Dark restaurant. Menu print, candle light." },
+    tv: { draw: paintTV, zoom: 4, dark: 1, blur: 4.5, torch: 0, label: "The TV across a dark room. Score and captions." },
+    label: { draw: paintLabel, zoom: 4, dark: .35, blur: 5.5, torch: 0, label: "A tiny ingredient and nutrition label." }
   };
 
   // ---------- WebGL ----------
@@ -199,7 +199,8 @@
     this.lastPointer = -1e9; this.visible = false; this.running = false; this.dpr = 1; this.down = null;
     this.onState = this.opts.onState || function () { };
     this.resize(); this.bind(); this.observe();
-    var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(function () { self.resize(); }, 150); });
+    var rz; var again = function () { clearTimeout(rz); rz = setTimeout(function () { var r = self.canvas.getBoundingClientRect(); if (Math.abs(r.width - self.cw) > 1 || Math.abs(r.height - self.ch) > 1) self.resize(); }, 120); };
+    window.addEventListener("resize", again); if (window.ResizeObserver) new ResizeObserver(again).observe(canvas);
   }
   Stage.prototype.setScene = function (name) {
     this.scene = SCENES[name]; this.frozen = false; this.pan = { x: 0, y: 0 }; this.flash = 0; this.paint(); this.state();
@@ -248,7 +249,7 @@
       try { c.setPointerCapture(e.pointerId); } catch (x) { }
     });
     c.addEventListener("pointerup", function () {
-      if (self.down && self.down.moved < 14 * self.dpr) {
+      if (self.down && self.down.moved < 14 * self.dpr && self.full) {
         self.frozen = !self.frozen; self.flash = 1; if (!self.frozen) self.pan = { x: 0, y: 0 }; self.state();
       }
       self.down = null; if (!self.running) self.draw(performance.now());
@@ -270,12 +271,12 @@
     var gl = this.gl, c = this.canvas, U = this.U, t = (now - this.t0) / 1000;
     if (!this.frozen && !reduce) {
       var idle = now - this.lastPointer > 2200;
-      if (idle) { this.target = { x: c.width * (.5 + .3 * Math.sin(t * .45)), y: c.height * (.5 + .22 * Math.sin(t * .33 + 1.3)) }; }
+      if (idle) { this.target = { x: c.width * (.5 + .07 * Math.sin(t * .6)), y: c.height * (.5 + .05 * Math.sin(t * .43 + 1.3)) }; }
       var k = idle ? .035 : .22; this.mouse.x += (this.target.x - this.mouse.x) * k; this.mouse.y += (this.target.y - this.mouse.y) * k;
     } else if (!this.frozen) { this.mouse = { x: this.target.x, y: this.target.y }; }
     var tt = this.scene.torch ? 1 : 0; this.torch += (tt - this.torch) * .06; this.flash *= .88;
     this.fr += ((this.full ? 1 : 0) - this.fr) * .12;
-    var base = this.opts.lens ? this.opts.lens * this.dpr : Math.min(c.width, c.height) * .36;
+    var base = 0;
     var R = base + (Math.hypot(c.width, c.height) * .8 - base) * this.fr;
     gl.uniform1i(U.uTex, 0); gl.uniform2f(U.uRes, c.width, c.height); gl.uniform2f(U.uMouse, this.mouse.x, this.mouse.y); gl.uniform2f(U.uPan, this.pan.x, this.pan.y);
     gl.uniform1f(U.uR, R); gl.uniform1f(U.uZoom, this.scene.zoom);
@@ -299,14 +300,16 @@
           onState: function (s) {
             if (!ui) return;
             ui.querySelector("[data-frozen]").hidden = !s.frozen; ui.querySelector("[data-live]").hidden = s.frozen;
-            var tr = ui.querySelector("[data-torch]"); if (tr) tr.classList.toggle("on", !!s.torch);
+            var zr = ui.querySelector("[data-zoom]"); if (zr) zr.textContent = (stage && stage.full ? (s.frozen ? "4.0×" : "4.0×") : "1.0×");
+            var hint = tag.querySelector("[data-hint]"); if (hint) hint.textContent = !(stage && stage.full) ? "Your regular camera. Tiny, dim, blurry." : (s.frozen ? "Tap to resume" : "Tap to freeze");
+            var tr = ui.querySelector("[data-torch]"); if (tr) tr.classList.toggle("on", !!s.torch && !!(stage && stage.full));
             var lb = tag.querySelector("[data-label]"); if (lb) lb.textContent = s.label;
           }
         });
         stage.state(); stages.push(stage); cv._stage = stage;
         if (cv.hasAttribute("data-main")) {
           var fb = tag.querySelector("[data-full]");
-          if (fb) fb.addEventListener("click", function () { stage.full = !stage.full; fb.setAttribute("aria-pressed", stage.full); fb.textContent = stage.full ? "Back to the blurry mess" : "Press the button"; if (!stage.running) stage.draw(performance.now()); });
+          if (fb) fb.addEventListener("click", function () { stage.full = !stage.full; fb.setAttribute("aria-pressed", stage.full); fb.textContent = stage.full ? "Close See It Yo" : "Open See It Yo"; tag.classList.toggle("open", stage.full); stage.frozen = false; stage.pan = { x: 0, y: 0 }; stage.state(); if (!stage.running) stage.draw(performance.now()); });
           document.querySelectorAll("[data-pick]").forEach(function (b) {
             b.addEventListener("click", function () {
               document.querySelectorAll("[data-pick]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });

@@ -144,20 +144,23 @@ const landing = `
 
 <section class="show" id="demo" data-stage>
   <div class="wrap">
-    <h2>Try it right here.</h2>
-    <p class="sub">Dim, grainy, blurry. Now press the button.</p>
+    <h2>This is the whole app.</h2>
+    <p class="sub">That's your regular camera in a dark restaurant: tiny, dim, blurry. Now open See It Yo. It starts already zoomed in, with the light on.</p>
     <div class="tabs" role="group" aria-label="Pick a scene">
       <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
       <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
       <button class="tab" type="button" data-pick="label" aria-pressed="false">Tiny label</button>
     </div>
-    <div class="stagebox">
-      <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive demo: a blurry, dim camera view of small print with a lens you can move to read it"></canvas>
-      <button class="bigbtn" type="button" data-full aria-pressed="false">Press the button</button>
-      <div class="hud" data-state aria-live="polite"><span class="chip" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen · drag to pan</span><span class="chip torch on" data-torch>Auto light</span></div>
+    <div class="phone">
+      <div class="stagebox">
+        <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive phone demo: a dim blurry camera view that becomes sharp and zoomed when you open See It Yo"></canvas>
+        <div class="hud" data-state aria-live="polite"><span class="chip live" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen</span><span class="chip zoomread" data-zoom>1.0×</span><span class="torchbtn" data-torch aria-hidden="true">🔦</span></div>
+        <div class="hint" data-hint>Your regular camera. Tiny, dim, blurry.</div>
+        <button class="bigbtn" type="button" data-full aria-pressed="false">Open See It Yo</button>
+      </div>
     </div>
     <p class="fine caption"><span data-label>Dark restaurant. Menu print, candle light.</span></p>
-    <p class="fine caption">Move to look around · Click to freeze · Click again to go live</p>
+    <p class="fine caption">Once it's open: move your mouse to move the phone · click to freeze · click again to go live</p>
     <p class="fine caption dim">Simulation. The real app uses your phone's camera.</p>
   </div>
 </section>
