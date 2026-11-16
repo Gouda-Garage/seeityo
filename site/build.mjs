@@ -121,6 +121,7 @@ ${body}
 <div class="big">See It Yo</div>
 <p>Leave the glasses at home.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
+<p class="copy">© ${new Date().getFullYear()} See It Yo. All rights reserved. See It Yo is an early build.</p>
 </footer>
 <script src="${href("/js/site.js")}?v=${BUILD_ID}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}?v=${BUILD_ID}" defer></script>` : ""}
 </body>
