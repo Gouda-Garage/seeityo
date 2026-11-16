@@ -67,8 +67,9 @@
     ctx.font = u * .78 + "px Georgia, serif"; ctx.fillStyle = "#5d4a32";
     para(ctx, "Please tell your server about any allergies. A 20% gratuity is added to parties of six or more. Prices subject to change without notice. Consuming raw or undercooked meats may increase your risk of foodborne illness. Corkage fee $25 per bottle. Specials are listed on the chalkboard by the bar.", x2, yr + u * .6, colW, u * 1.25);
     // dim edges + candle pool
-    var vg = ctx.createRadialGradient(cw * .22, -ch * .36, cw * .05, 0, 0, cw * .75);
-    vg.addColorStop(0, "rgba(255,200,120,.38)"); vg.addColorStop(.45, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.62)");
+    var big = Math.max(cw, ch);
+    var vg = ctx.createRadialGradient(cw * .15, -ch * .3, big * .05, 0, 0, big * .95);
+    vg.addColorStop(0, "rgba(255,200,120,.3)"); vg.addColorStop(.5, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.4)");
     ctx.fillStyle = vg; ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
     ctx.restore();
   }
