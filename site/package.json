@@ -1,0 +1,12 @@
+{
+  "name": "seeityo-site",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs", "preview": "INCLUDE_FUTURE=1 node build.mjs" },
+  "dependencies": {
+    "@fontsource/rye": "^5.1.0",
+    "@fontsource/shrikhand": "^5.1.0",
+    "@fontsource/space-mono": "^5.1.0",
+    "marked": "^12.0.2"
+  }
+}
