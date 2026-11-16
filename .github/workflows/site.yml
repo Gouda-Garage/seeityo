@@ -5,6 +5,9 @@ on:
     paths: ['site/**', '.github/workflows/site.yml']
   schedule:
     - cron: '0 13 * * *'   # every morning ~6am Mountain: publishes any article dated today
+  workflow_run:
+    workflows: ['Build See It Yo APK']
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +23,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '22', cache: npm, cache-dependency-path: site/package-lock.json }
+      - name: Fetch latest APK so the site hosts it itself
+        run: gh release download --repo "$GITHUB_REPOSITORY" --pattern SeeItYo.apk --dir site/src/static --clobber || echo "no APK yet"
+        env: { GH_TOKEN: '${{ github.token }}' }
       - run: npm ci
         working-directory: site
       - run: node build.mjs

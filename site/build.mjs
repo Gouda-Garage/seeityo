@@ -8,6 +8,9 @@ const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "config.json"), "utf8"));
 if (process.env.SITE_BASE !== undefined) cfg.base = process.env.SITE_BASE;
 if (process.env.SITE_ORIGIN) cfg.origin = process.env.SITE_ORIGIN;
 const DIST = path.join(ROOT, "dist");
+// If the latest APK was fetched into src/static, serve it from the site itself so visitors never see GitHub.
+const STATIC = path.join(ROOT, "src/static");
+if (fs.existsSync(path.join(STATIC, "SeeItYo.apk"))) cfg.apkUrl = `${cfg.base}/SeeItYo.apk`;
 const TODAY = new Date().toISOString().slice(0, 10);
 const FUTURE = process.env.INCLUDE_FUTURE === "1";
 
@@ -30,6 +33,7 @@ const fonts = [
   ["space-mono", "space-mono-latin-700-normal.woff2"],
 ];
 for (const [pkg, file] of fonts) copy(path.join(ROOT, "node_modules/@fontsource", pkg, "files", file), `fonts/${file}`);
+if (fs.existsSync(STATIC)) for (const f of fs.readdirSync(STATIC)) copy(path.join(STATIC, f), f);
 copy(path.join(ROOT, "src/css/style.css"), "css/style.css");
 copy(path.join(ROOT, "src/js/site.js"), "js/site.js");
 copy(path.join(ROOT, "src/js/scenes.js"), "js/scenes.js");
@@ -120,7 +124,7 @@ ${body}
 <footer>
 <div class="big">See It Yo</div>
 <p>Leave the glasses at home.</p>
-<p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
+<p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${href("/feed.xml")}">RSS</a></p>
 <p class="copy">© ${new Date().getFullYear()} See It Yo. All rights reserved. See It Yo is an early build.</p>
 </footer>
 <script src="${href("/js/site.js")}?v=${BUILD_ID}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}?v=${BUILD_ID}" defer></script>` : ""}
@@ -341,7 +345,7 @@ write("llms.txt", `# ${cfg.name}
 - Price: free during the beta.
 - Privacy: saves no photos or video, no account, no ads, no analytics. The app does not request internet permission.
 - What it does not do: no OCR, no AI, no text-to-speech, no medical interpretation. It is a magnifier, not a medical device.
-- Install: direct APK download from GitHub Releases (${cfg.releasesUrl}). Google Play listing is coming soon.
+- Install: direct APK download from the website (${cfg.apkUrl.startsWith("http") ? cfg.apkUrl : abs(cfg.apkUrl.replace(cfg.base, ""))}). Google Play listing is coming soon.
 - Current version: ${cfg.version}
 - Made by: one person in a garage. Contact: ${cfg.email}
 
@@ -349,7 +353,6 @@ write("llms.txt", `# ${cfg.name}
 - [Home](${abs("/")}): what it is, how to install, FAQ
 - [Articles](${abs("/articles/")}): plain answers to everyday small-print problems
 - [Feedback](${abs("/feedback/")}): tell us how the beta worked for you
-- [Source code](${cfg.repoUrl})
 
 ## Articles
 ${articles.map((a) => `- [${a.title}](${abs(`/articles/${a.slug}/`)}): ${a.description}`).join("\n")}

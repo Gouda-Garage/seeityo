@@ -57,6 +57,12 @@ class Prefs(ctx: Context) {
     var onboarded: Boolean get() = p.getBoolean("onboarded", false); set(v) = p.edit().putBoolean("onboarded", v).apply()
 }
 
+val SiyPurple = Color(0xFF5B21D6)
+val SiyInk = Color(0xFF0E0B1A)
+val SiyMute = Color(0xFF5D5873)
+val SiyTint = Color(0xFFF2EEFD)
+val SiyBg = Color(0xFFFCFBFF)
+
 class MainActivity : ComponentActivity() {
     private var permissionState by mutableStateOf(false)
     private var askedOnce by mutableStateOf(false)
@@ -93,18 +99,21 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PermissionScreen(showSettings: Boolean, onAllow: () -> Unit, onSettings: () -> Unit) {
-    Column(Modifier.fillMaxSize().background(Color.Black).padding(28.dp), verticalArrangement = Arrangement.Center) {
-        Text("See It Yo", fontSize = 52.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, letterSpacing = (-2).sp)
-        Text("Tiny print. One tap.", fontSize = 22.sp, color = Color(0xFFBBBBBB))
-        Spacer(Modifier.height(24.dp))
-        Text("See It Yo opens your camera already zoomed in so you can read menus, labels and receipts. Nothing is saved. No photos, no account, no tracking.", color = Color(0xFFAAAAAA), fontSize = 17.sp, lineHeight = 24.sp)
+    Column(Modifier.fillMaxSize().background(SiyBg).padding(28.dp), verticalArrangement = Arrangement.Center) {
+        Text("SMALL TEXT SHOULDN'T BE A BIG PROBLEM", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = SiyMute, letterSpacing = 1.6.sp)
+        Spacer(Modifier.height(12.dp))
+        Text("SEE IT.", fontSize = 56.sp, fontWeight = FontWeight.Black, color = SiyInk, letterSpacing = (-2).sp, lineHeight = 52.sp)
+        Text("READ IT.", fontSize = 56.sp, fontWeight = FontWeight.Black, color = SiyInk, letterSpacing = (-2).sp, lineHeight = 52.sp)
+        Text("DONE.", fontSize = 56.sp, fontWeight = FontWeight.Black, color = SiyPurple, letterSpacing = (-2).sp, lineHeight = 52.sp)
+        Spacer(Modifier.height(20.dp))
+        Text("Leave your reading glasses at home. See It Yo opens your camera already zoomed in so small print is big and sharp. Nothing is saved. No photos, no account, no tracking.", color = SiyInk, fontSize = 17.sp, lineHeight = 24.sp)
         Spacer(Modifier.height(28.dp))
         if (showSettings) {
-            Text("Camera is blocked. Turn it on in Settings, then come back.", color = Color(0xFFF5C518))
+            Text("Camera is blocked. Turn it on in Settings, then come back.", color = Color(0xFFB45309))
             Spacer(Modifier.height(12.dp))
-            Button(onClick = onSettings, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(14.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)) { Text("Open Settings", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) }
+            Button(onClick = onSettings, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = SiyPurple, contentColor = Color.White)) { Text("Open Settings", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold) }
         } else {
-            Button(onClick = onAllow, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(14.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black)) { Text("Allow camera", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) }
+            Button(onClick = onAllow, modifier = Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = SiyPurple, contentColor = Color.White)) { Text("Allow camera", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold) }
         }
     }
 }
@@ -242,12 +251,12 @@ fun CameraScreen(prefs: Prefs) {
 @Composable
 fun Pill(text: String, modifier: Modifier, bold: Boolean = true) {
     Text(text, color = Color.White, fontSize = 14.sp, fontWeight = if (bold) FontWeight.Bold else FontWeight.Medium, letterSpacing = if (bold) 1.5.sp else 0.sp,
-        modifier = modifier.clip(RoundedCornerShape(999.dp)).background(Color(0x8C000000)).padding(horizontal = 14.dp, vertical = 8.dp))
+        modifier = modifier.clip(RoundedCornerShape(999.dp)).background(if (text == "FROZEN") SiyPurple else Color(0x99000000)).padding(horizontal = 14.dp, vertical = 8.dp))
 }
 
 @Composable
 fun RoundBtn(label: String, modifier: Modifier, active: Boolean = false, onClick: () -> Unit) {
-    Box(modifier.size(52.dp).clip(CircleShape).background(if (active) Color.White else Color(0x8C000000)).pointerInput(Unit) { detectTapGestures(onTap = { onClick() }) }, contentAlignment = Alignment.Center) {
+    Box(modifier.size(52.dp).clip(CircleShape).background(if (active) Color(0xFFFFD25A) else Color(0x99000000)).pointerInput(Unit) { detectTapGestures(onTap = { onClick() }) }, contentAlignment = Alignment.Center) {
         Text(label, fontSize = 22.sp, color = if (active) Color.Black else Color.White)
     }
 }
@@ -257,33 +266,33 @@ fun RoundBtn(label: String, modifier: Modifier, active: Boolean = false, onClick
 fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, onClose: () -> Unit) {
     var haptics by remember { mutableStateOf(prefs.haptics) }
     var autoTorch by remember { mutableStateOf(prefs.autoTorch) }
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = Color(0xFF0A0A0A)) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = Color.White) {
         Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 36.dp)) {
-            Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Black, color = SiyInk)
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column { Text("Default zoom", color = Color.White, fontSize = 17.sp); Text("Where See It Yo opens every time", color = Color(0xFF777777), fontSize = 13.sp) }
+                Column { Text("Default zoom", color = SiyInk, fontSize = 17.sp); Text("Where See It Yo opens every time", color = SiyMute, fontSize = 13.sp) }
                 Row { listOf(2f, 3f, 4f, 5f, 6f).forEach { z ->
                     val sel = prefs.defaultZoom == z
-                    Text("${z.toInt()}×", color = if (sel) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 6.dp).clip(RoundedCornerShape(8.dp)).background(if (sel) Color.White else Color(0xFF222222))
+                    Text("${z.toInt()}×", color = if (sel) Color.White else SiyInk, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                        modifier = Modifier.padding(start = 6.dp).clip(RoundedCornerShape(8.dp)).background(if (sel) SiyPurple else SiyTint)
                             .pointerInput(z) { detectTapGestures { onZoomDefault(z) } }.padding(horizontal = 10.dp, vertical = 6.dp))
                 } }
             }
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFF1C1C1C))
+            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column { Text("Auto flashlight", color = Color.White, fontSize = 17.sp); Text("Turns on by itself when it's dark", color = Color(0xFF777777), fontSize = 13.sp) }
-                Switch(checked = autoTorch, onCheckedChange = { autoTorch = it; prefs.autoTorch = it })
+                Column { Text("Auto flashlight", color = SiyInk, fontSize = 17.sp); Text("Turns on by itself when it's dark", color = SiyMute, fontSize = 13.sp) }
+                Switch(checked = autoTorch, onCheckedChange = { autoTorch = it; prefs.autoTorch = it }, colors = SwitchDefaults.colors(checkedTrackColor = SiyPurple))
             }
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFF1C1C1C))
+            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column { Text("Haptic on freeze", color = Color.White, fontSize = 17.sp); Text("Short buzz when you freeze", color = Color(0xFF777777), fontSize = 13.sp) }
-                Switch(checked = haptics, onCheckedChange = { haptics = it; prefs.haptics = it })
+                Column { Text("Haptic on freeze", color = SiyInk, fontSize = 17.sp); Text("Short buzz when you freeze", color = SiyMute, fontSize = 13.sp) }
+                Switch(checked = haptics, onCheckedChange = { haptics = it; prefs.haptics = it }, colors = SwitchDefaults.colors(checkedTrackColor = SiyPurple))
             }
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFF1C1C1C))
-            Text("One-tap trigger: Samsung → Settings → Advanced features → Side button → Double press → See It Yo.  Pixel → Settings → System → Gestures → Quick Tap → See It Yo.", color = Color(0xFF777777), fontSize = 13.sp, lineHeight = 18.sp)
+            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
+            Text("One-tap trigger: Samsung → Settings → Advanced features → Side button → Double press → See It Yo.  Pixel → Settings → System → Gestures → Quick Tap → See It Yo.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text("See It Yo v0.3 prototype · nothing is saved", color = Color(0xFF444444), fontSize = 12.sp)
+            Text("See It Yo v0.5 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
         }
     }
 }
