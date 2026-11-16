@@ -8,7 +8,7 @@
   "releasesUrl": "https://github.com/Gouda-Garage/seeityo/releases/latest",
   "repoUrl": "https://github.com/Gouda-Garage/seeityo",
   "browserUrl": "https://bigread.pages.dev/app/",
-  "version": "0.5",
+  "version": "0.7",
   "minAndroid": "8.0",
   "summary": "See It Yo is a free Android beta that turns your phone into instant reading glasses. One tap opens the rear camera already zoomed in, with the flashlight on automatically when it's dark. Tap to freeze the frame. It saves no photos, needs no account, shows no ads and has no AI."
 }

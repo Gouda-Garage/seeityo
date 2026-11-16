@@ -59,6 +59,28 @@ class Prefs(ctx: Context) {
     var autoTorch: Boolean get() = p.getBoolean("autoTorch", true); set(v) = p.edit().putBoolean("autoTorch", v).apply()
     var onboarded: Boolean get() = p.getBoolean("onboarded", false); set(v) = p.edit().putBoolean("onboarded", v).apply()
     var pro: Boolean get() = p.getBoolean("pro", false); set(v) = p.edit().putBoolean("pro", v).apply()
+    // Index into READER_STRENGTHS, or -1 if the person never picked one (or set a custom zoom by hand).
+    var strength: Int get() = p.getInt("strength", -1); set(v) = p.edit().putInt("strength", v).apply()
+}
+
+// "Reading strength" = the readers a person normally uses (the +number on the sticker).
+// It only picks a starting zoom. It is not a prescription and not medical advice.
+data class ReaderStrength(val label: String, val zoom: Float)
+val READER_STRENGTHS = listOf(
+    ReaderStrength("+1.00", 2f),
+    ReaderStrength("+1.50", 3f),
+    ReaderStrength("+2.00", 4f),
+    ReaderStrength("+2.50", 5f),
+    ReaderStrength("+3.00 or more", 6f),
+    ReaderStrength("Not sure", 4f),
+)
+
+/** Saves the chosen reading strength plus its starting zoom, and returns that zoom. */
+fun pickStrength(prefs: Prefs, index: Int): Float {
+    val s = READER_STRENGTHS.getOrNull(index) ?: return prefs.defaultZoom
+    prefs.strength = index
+    prefs.defaultZoom = s.zoom
+    return s.zoom
 }
 
 const val SITE_URL = "https://seeityo.com"
@@ -89,6 +111,8 @@ class MainActivity : ComponentActivity() {
                 var onboarding by remember { mutableStateOf(!prefs.onboarded) }
                 if (onboarding) {
                     Onboarding(
+                        prefs = prefs,
+                        onStrength = { pickStrength(prefs, it) },
                         buttonLabel = if (permissionState) "Start" else "Allow camera & start",
                         onDone = {
                             prefs.onboarded = true; onboarding = false
@@ -264,7 +288,7 @@ fun CameraScreen(prefs: Prefs) {
 
         if (hasFlash) RoundBtn(if (torchOn) "🔦" else "🔦", Modifier.align(Alignment.BottomStart).padding(start = 14.dp, bottom = 84.dp), active = torchOn) { autoTorched = true; setTorch(!torchOn) }
         RoundBtn("☰", Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 84.dp)) { showMenu = true }
-        if (showHow) Onboarding(buttonLabel = "Got it", onDone = { showHow = false })
+        if (showHow) Onboarding(prefs = prefs, onStrength = { applyZoom(pickStrength(prefs, it)) }, buttonLabel = "Got it", onDone = { showHow = false })
     }
 
     if (showMenu) MenuSheet(
@@ -278,7 +302,12 @@ fun CameraScreen(prefs: Prefs) {
     )
     if (showPro) ProSheet(onClose = { showPro = false }, onTellUs = { showPro = false; sendFeedback(context, "What I'd pay for in See It Yo Pro") })
 
-    if (showSettings) SettingsSheet(prefs, zoomRatio, onZoomDefault = { prefs.defaultZoom = it; applyZoom(it) }, onClose = { showSettings = false })
+    if (showSettings) SettingsSheet(
+        prefs, zoomRatio,
+        onZoomDefault = { prefs.strength = -1; prefs.defaultZoom = it; applyZoom(it) },
+        onStrength = { applyZoom(pickStrength(prefs, it)) },
+        onClose = { showSettings = false }
+    )
 }
 
 @Composable
@@ -296,20 +325,27 @@ fun RoundBtn(label: String, modifier: Modifier, active: Boolean = false, onClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, onClose: () -> Unit) {
+fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, onStrength: (Int) -> Unit, onClose: () -> Unit) {
     var haptics by remember { mutableStateOf(prefs.haptics) }
     var autoTorch by remember { mutableStateOf(prefs.autoTorch) }
+    var strength by remember { mutableIntStateOf(prefs.strength) }
+    var zoomSel by remember { mutableFloatStateOf(prefs.defaultZoom) }
     ModalBottomSheet(onDismissRequest = onClose, containerColor = Color.White) {
-        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 36.dp)) {
+        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 36.dp).verticalScroll(rememberScrollState())) {
             Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Black, color = SiyInk)
             Spacer(Modifier.height(16.dp))
+            Text("Reading strength", color = SiyInk, fontSize = 17.sp)
+            Text("The readers you usually use (it's the + number on the sticker). Sets where See It Yo opens. Saved on this phone.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
+            Spacer(Modifier.height(10.dp))
+            StrengthPicker(selected = strength, onPick = { strength = it; zoomSel = READER_STRENGTHS[it].zoom; onStrength(it) })
+            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column { Text("Default zoom", color = SiyInk, fontSize = 17.sp); Text("Where See It Yo opens every time", color = SiyMute, fontSize = 13.sp) }
+                Column { Text("Default zoom", color = SiyInk, fontSize = 17.sp); Text("Fine-tune where it opens", color = SiyMute, fontSize = 13.sp) }
                 Row { listOf(2f, 3f, 4f, 5f, 6f).forEach { z ->
-                    val sel = prefs.defaultZoom == z
+                    val sel = zoomSel == z
                     Text("${z.toInt()}×", color = if (sel) Color.White else SiyInk, fontWeight = FontWeight.Bold, fontSize = 14.sp,
                         modifier = Modifier.padding(start = 6.dp).clip(RoundedCornerShape(8.dp)).background(if (sel) SiyPurple else SiyTint)
-                            .pointerInput(z) { detectTapGestures { onZoomDefault(z) } }.padding(horizontal = 10.dp, vertical = 6.dp))
+                            .pointerInput(z) { detectTapGestures { zoomSel = z; strength = -1; onZoomDefault(z) } }.padding(horizontal = 10.dp, vertical = 6.dp))
                 } }
             }
             HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
@@ -325,11 +361,31 @@ fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, 
             HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Text("One-tap trigger: Samsung → Settings → Advanced features → Side button → Double press → See It Yo.  Pixel → Settings → System → Gestures → Quick Tap → See It Yo.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text("See It Yo v0.6 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
+            Text("See It Yo v0.7 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
         }
     }
 }
 
+
+@Composable
+fun StrengthPicker(selected: Int, onPick: (Int) -> Unit) {
+    Column {
+        READER_STRENGTHS.indices.chunked(2).forEach { rowIdx ->
+            Row(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                rowIdx.forEach { i ->
+                    val sel = selected == i
+                    Box(
+                        Modifier.weight(1f).padding(end = if (i % 2 == 0) 8.dp else 0.dp).height(52.dp).clip(RoundedCornerShape(14.dp))
+                            .background(if (sel) SiyPurple else SiyTint).clickable { onPick(i) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(READER_STRENGTHS[i].label, color = if (sel) Color.White else SiyInk, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+            }
+        }
+    }
+}
 
 fun openUrl(ctx: Context, url: String) {
     try { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) {}
@@ -364,13 +420,14 @@ fun Step(num: String, title: String, body: String) {
 }
 
 @Composable
-fun Onboarding(buttonLabel: String, onDone: () -> Unit) {
+fun Onboarding(prefs: Prefs, onStrength: (Int) -> Unit, buttonLabel: String, onDone: () -> Unit) {
     var page by remember { mutableIntStateOf(0) }
-    val last = 3
+    var strength by remember { mutableIntStateOf(prefs.strength) }
+    val last = 4
     Column(Modifier.fillMaxSize().background(SiyBg).statusBarsPadding().navigationBarsPadding().padding(horizontal = 28.dp, vertical = 20.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                repeat(4) { i ->
+                repeat(5) { i ->
                     Box(Modifier.padding(end = 6.dp).height(8.dp).width(if (i == page) 24.dp else 8.dp).clip(RoundedCornerShape(99.dp)).background(if (i == page) SiyPurple else Color(0xFFD9D2F0)))
                 }
             }
@@ -395,6 +452,15 @@ fun Onboarding(buttonLabel: String, onDone: () -> Unit) {
                     Step("4", "Dark room?", "It brightens by itself and turns the flashlight on if it has to. The torch button is there too.")
                 }
                 2 -> {
+                    Text("What readers do you use?", fontSize = 34.sp, fontWeight = FontWeight.Black, color = SiyInk, lineHeight = 38.sp)
+                    Spacer(Modifier.height(10.dp))
+                    Text("Pick the strength you usually buy (the + number on the sticker). We'll open at a zoom that fits. Change it any time in Settings.", color = SiyMute, fontSize = 17.sp, lineHeight = 24.sp)
+                    Spacer(Modifier.height(18.dp))
+                    StrengthPicker(selected = strength, onPick = { strength = it; onStrength(it) })
+                    Spacer(Modifier.height(6.dp))
+                    Text("Not sure, or skip? We start at 4×. This only sets a starting zoom. It is not a prescription or medical advice.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
+                }
+                3 -> {
                     Text("Make it one tap.", fontSize = 34.sp, fontWeight = FontWeight.Black, color = SiyInk)
                     Spacer(Modifier.height(10.dp))
                     Text("Open it without hunting for the icon:", color = SiyMute, fontSize = 17.sp)
@@ -440,13 +506,13 @@ fun MenuSheet(onClose: () -> Unit, onSettings: () -> Unit, onHow: () -> Unit, on
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 32.dp).verticalScroll(rememberScrollState())) {
             Text("See It Yo", fontSize = 28.sp, fontWeight = FontWeight.Black, color = SiyInk, modifier = Modifier.padding(start = 6.dp, bottom = 8.dp))
             MenuRow("⭐", "See It Yo Pro", if (PRO_ENABLED) "Unlock everything" else "Coming soon. Free during beta.", onPro)
-            MenuRow("⚙", "Settings", "Zoom, flashlight, haptics", onSettings)
+            MenuRow("⚙", "Settings", "Reading strength, zoom, flashlight", onSettings)
             MenuRow("❓", "How it works", "Replay the quick tutorial", onHow)
             MenuRow("📤", "Share with a friend", "Text it, post it, send it", onShare)
             MenuRow("💬", "Send feedback", "Tell us what's broken or missing", onFeedback)
             MenuRow("🔒", "Privacy", "Nothing is saved. Ever.", onPrivacy)
             Spacer(Modifier.height(8.dp))
-            Text("See It Yo v0.6 beta", color = SiyMute, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+            Text("See It Yo v0.7 beta", color = SiyMute, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
         }
     }
 }

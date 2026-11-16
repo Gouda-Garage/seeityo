@@ -46,6 +46,7 @@ const FAQ = [
   ["Does it read the text out loud or \"understand\" it?", "No. There is no OCR and no AI. It makes things bigger and brighter. That's the whole product."],
   ["Why not just use my camera app?", "You can. But the camera app makes you open it, find the zoom, pinch around and hope the flash is on. See It Yo opens already zoomed in, turns the light on by itself when it's dark, and freezes the picture with one tap."],
   ["Will it work on the TV across the room?", "That's the test we're running right now: reading captions and scores from the couch in a dark room. Try it on your phone and tell us how it went."],
+  ["Can I set it for my reading glasses?", "Yes. The first time you open it, pick the strength of readers you normally use (the + number on the sticker, like +1.50 or +2.00). It opens at a zoom that fits and remembers your choice on your phone, so you never set it again. You can change it any time in Settings. It only sets a starting zoom. It isn't a prescription and it isn't medical advice."],
   ["Is it a medical thing?", "No. It's a magnifier. Don't rely on it alone for medicine labels, dosages or safety warnings. If it matters, ask a pharmacist or a person."],
   ["What phones does it work on?", `Android ${cfg.minAndroid} or newer with a rear camera. A flashlight helps in the dark but isn't required.`],
   ["Is it free?", "Yes. It's free while we test. If that ever changes, we'll say so here first."],
@@ -177,7 +178,7 @@ const landing = `
   <h2>One tap. That's it.</h2>
   <div class="steps3">
     <div class="step"><div class="n">1</div><div><h3>Save</h3><p>Put See It Yo on your home screen once.</p></div></div>
-    <div class="step"><div class="n">2</div><div><h3>Tap</h3><p>It opens already zoomed in, and turns the light on by itself when it's dark.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h3>Tap</h3><p>It opens already zoomed in for your reading strength, and turns the light on by itself when it's dark.</p></div></div>
     <div class="step"><div class="n">3</div><div><h3>Read</h3><p>Small print, big and sharp. Tap to freeze it, then pinch and drag around.</p></div></div>
   </div>
 </div></section>
@@ -250,7 +251,7 @@ const appLd = {
   downloadUrl: cfg.apkUrl,
   url: abs("/"),
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free during the Android beta" },
-  featureList: ["Opens the rear camera already zoomed in", "Automatic flashlight in the dark", "Tap to freeze the frame", "Pinch and drag the frozen frame", "No photos saved", "No account", "No ads", "No AI"],
+  featureList: ["Opens the rear camera already zoomed in", "Pick your reading glasses strength once and it remembers", "Automatic flashlight in the dark", "Tap to freeze the frame", "Pinch and drag the frozen frame", "No photos saved", "No account", "No ads", "No AI"],
 };
 const siteLd = { "@context": "https://schema.org", "@type": "WebSite", name: cfg.name, url: abs("/") };
 
