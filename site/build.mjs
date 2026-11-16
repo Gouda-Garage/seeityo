@@ -162,7 +162,7 @@ const landing = `
       </div>
     </div>
     <p class="fine caption"><span data-label>Dark restaurant. Menu print, candle light.</span></p>
-    <p class="fine caption">Once it's open: move your mouse to move the phone · click to freeze · click again to go live</p>
+    <p class="fine caption">Once it's open: move your mouse (or drag) to pan around the page · click to freeze · click again to go live</p>
     <p class="fine caption dim">Simulation. The real app uses your phone's camera.</p>
   </div>
 </section>

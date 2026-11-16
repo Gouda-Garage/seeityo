@@ -41,7 +41,7 @@
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
     bokeh(ctx, R, 46, w, h, .55, ["255,170,80", "255,120,60"], 10, 48);
     var u = Math.max(7.5, Math.min(10, w * .0085));
-    var cw = Math.min(w * .92, 780), ch = Math.min(h * .9, 640);
+    var cw = Math.min(w * .92, 780), ch = Math.min(h * .74, 640);
     ctx.save(); ctx.translate(w / 2, h * .53); ctx.rotate(-.035);
     ctx.shadowColor = "rgba(0,0,0,.75)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
     var pg = ctx.createLinearGradient(-cw / 2, -ch / 2, cw / 2, ch / 2); pg.addColorStop(0, "#eadcb6"); pg.addColorStop(1, "#d6c595");
@@ -133,15 +133,15 @@
   }
 
   var SCENES = {
-    menu: { draw: paintMenu, zoom: 4, dark: 1, blur: 6.5, torch: 1, label: "Dark restaurant. Menu print, candle light." },
-    tv: { draw: paintTV, zoom: 4, dark: 1, blur: 4.5, torch: 0, label: "The TV across a dark room. Score and captions." },
-    label: { draw: paintLabel, zoom: 4, dark: .35, blur: 5.5, torch: 0, label: "A tiny ingredient and nutrition label." }
+    menu: { draw: paintMenu, zoom: 2.4, dark: 1, blur: 3.2, torch: 1, label: "Dark restaurant. Menu print, candle light." },
+    tv: { draw: paintTV, zoom: 2.6, dark: 1, blur: 2.6, torch: 0, label: "The TV across a dark room. Score and captions." },
+    label: { draw: paintLabel, zoom: 2.4, dark: .35, blur: 3, torch: 0, label: "A tiny ingredient and nutrition label." }
   };
 
   // ---------- WebGL ----------
   var VS = "#version 300 es\nin vec2 p; void main(){ gl_Position=vec4(p,0.,1.); }";
   var FS = "#version 300 es\nprecision highp float;\n" +
-    "uniform sampler2D uTex; uniform vec2 uRes, uMouse, uPan; uniform float uR, uZoom, uTime, uDark, uFreeze, uTorch, uBlur, uFlash;\nout vec4 o;\n" +
+    "uniform sampler2D uTex; uniform vec2 uRes, uMouse, uPan, uView; uniform float uR, uZoom, uTime, uDark, uFreeze, uTorch, uBlur, uFlash;\nout vec4 o;\n" +
     "float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\n" +
     "vec3 blurS(vec2 uv,float rad){ vec3 a=vec3(0.); for(int i=0;i<14;i++){ float ang=float(i)*2.39996; float r=sqrt(float(i)+.5)/3.74; a+=texture(uTex,uv+vec2(cos(ang),sin(ang))*r*rad/uRes).rgb; } return a/14.; }\n" +
     "void main(){\n" +
@@ -163,10 +163,10 @@
     " if(lens>.001){\n" +
     "  vec2 dir=(px-uMouse)/uR; float rr=length(dir);\n" +
     "  vec2 dd=dir*(1.+.16*rr*rr);\n" +
-    "  vec2 suv=(uMouse+dd*uR/uZoom+uPan)/uRes;\n" +
-    "  vec2 e=vec2(1.2,0.)/uRes;\n" +
+    "  vec2 suv=(uView+dd*uR/uZoom+uPan)/uRes;\n" +
+    "  vec2 e=vec2(1.2,0.)/(uRes*3.);\n" +
     "  vec3 s=texture(uTex,suv).rgb; vec3 n=(texture(uTex,suv+e).rgb+texture(uTex,suv-e).rgb+texture(uTex,suv+e.yx).rgb+texture(uTex,suv-e.yx).rgb)*.25;\n" +
-    "  s=clamp(s+(s-n)*.9,0.,1.5);\n" +
+    "  s=clamp(s+(s-n)*.35,0.,1.5);\n" +
     "  s*=mix(1.,.72,uDark*(1.-uTorch));\n" +
     "  s*=1.+uTorch*.22; s=mix(s,s*vec3(1.03,1.0,.95),uTorch);\n" +
     "  s+=(hash(px+uTime*57.)-.5)*.05*(1.-uFreeze)*uDark*(1.-uTorch);\n" +
@@ -192,7 +192,7 @@
     gl.useProgram(pr); this.pr = pr;
     var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     var loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    this.U = {}; ["uTex", "uRes", "uMouse", "uPan", "uR", "uZoom", "uTime", "uDark", "uFreeze", "uTorch", "uBlur", "uFlash"].forEach(function (n) { self.U[n] = gl.getUniformLocation(pr, n); });
+    this.U = {}; ["uTex", "uRes", "uMouse", "uPan", "uView", "uR", "uZoom", "uTime", "uDark", "uFreeze", "uTorch", "uBlur", "uFlash"].forEach(function (n) { self.U[n] = gl.getUniformLocation(pr, n); });
     this.tex = gl.createTexture();
     this.scene = SCENES[this.opts.scene || "menu"];
     this.mouse = { x: 0, y: 0 }; this.target = { x: 0, y: 0 }; this.pan = { x: 0, y: 0 };
@@ -217,11 +217,12 @@
   Stage.prototype.paint = function () {
     var self = this, gl = this.gl;
     var go = function () {
-      var off = document.createElement("canvas"); off.width = self.canvas.width; off.height = self.canvas.height;
-      var ctx = off.getContext("2d"); ctx.scale(self.dpr, self.dpr); self.scene.draw(ctx, self.cw, self.ch);
+      var S = Math.max(1, Math.min(4, 4096 / Math.max(self.cw, self.ch) / self.dpr)) * self.dpr;
+      var off = document.createElement("canvas"); off.width = Math.round(self.cw * S); off.height = Math.round(self.ch * S);
+      var ctx = off.getContext("2d"); ctx.scale(S, S); self.scene.draw(ctx, self.cw, self.ch);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, self.tex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, off);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       self.draw(performance.now());
     };
@@ -272,14 +273,18 @@
     var gl = this.gl, c = this.canvas, U = this.U, t = (now - this.t0) / 1000;
     if (!this.frozen && !reduce) {
       var idle = now - this.lastPointer > 2200;
-      if (idle) { this.target = { x: c.width * (.5 + .07 * Math.sin(t * .6)), y: c.height * (.5 + .05 * Math.sin(t * .43 + 1.3)) }; }
+      if (idle) { this.target = { x: c.width * (.5 + .3 * Math.sin(t * .35)), y: c.height * (.4 + .3 * Math.sin(t * .27 + 1.3)) }; }
       var k = idle ? .035 : .22; this.mouse.x += (this.target.x - this.mouse.x) * k; this.mouse.y += (this.target.y - this.mouse.y) * k;
     } else if (!this.frozen) { this.mouse = { x: this.target.x, y: this.target.y }; }
     var tt = this.scene.torch ? 1 : 0; this.torch += (tt - this.torch) * .06; this.flash *= .88;
     this.fr += ((this.full ? 1 : 0) - this.fr) * .12;
     var base = 0;
     var R = base + (Math.hypot(c.width, c.height) * .8 - base) * this.fr;
-    gl.uniform1i(U.uTex, 0); gl.uniform2f(U.uRes, c.width, c.height); gl.uniform2f(U.uMouse, this.mouse.x, this.mouse.y); gl.uniform2f(U.uPan, this.pan.x, this.pan.y);
+    gl.uniform1i(U.uTex, 0); gl.uniform2f(U.uRes, c.width, c.height); var fr = this.fr, cx = c.width / 2, cy = c.height / 2;
+    var mx = Math.max(.1, Math.min(.9, this.mouse.x / c.width)) , my = Math.max(.1, Math.min(.9, this.mouse.y / c.height));
+    var vx = this.mouse.x + (c.width * (.18 + .64 * (this.mouse.x / c.width)) - this.mouse.x) * fr, vy = this.mouse.y + (c.height * (.15 + .7 * (this.mouse.y / c.height)) - this.mouse.y) * fr;
+    gl.uniform2f(U.uView, vx, vy);
+    gl.uniform2f(U.uMouse, this.mouse.x + (cx - this.mouse.x) * fr, this.mouse.y + (cy - this.mouse.y) * fr); gl.uniform2f(U.uPan, this.pan.x, this.pan.y);
     gl.uniform1f(U.uR, R); gl.uniform1f(U.uZoom, this.scene.zoom);
     gl.uniform1f(U.uTime, t % 100); gl.uniform1f(U.uDark, this.scene.dark); gl.uniform1f(U.uFreeze, this.frozen ? 1 : 0);
     gl.uniform1f(U.uTorch, this.torch); gl.uniform1f(U.uBlur, this.scene.blur * this.dpr); gl.uniform1f(U.uFlash, this.flash);
@@ -301,7 +306,7 @@
           onState: function (s) {
             if (!ui) return;
             ui.querySelector("[data-frozen]").hidden = !s.frozen; ui.querySelector("[data-live]").hidden = s.frozen;
-            var zr = ui.querySelector("[data-zoom]"); if (zr) zr.textContent = (stage && stage.full ? (s.frozen ? "4.0×" : "4.0×") : "1.0×");
+            var zr = ui.querySelector("[data-zoom]"); if (zr) zr.textContent = (stage && stage.full ? stage.scene.zoom.toFixed(1) + "×" : "1.0×");
             var hint = tag.querySelector("[data-hint]"); if (hint) hint.textContent = !(stage && stage.full) ? "Your regular camera. Tiny, dim, blurry." : (s.frozen ? "Tap to resume" : "Tap to freeze");
             var tr = ui.querySelector("[data-torch]"); if (tr) tr.classList.toggle("on", !!s.torch && !!(stage && stage.full));
             var lb = tag.querySelector("[data-label]"); if (lb) lb.textContent = s.label;

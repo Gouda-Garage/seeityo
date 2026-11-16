@@ -233,3 +233,4 @@ body.dark .topnav,body.dark .crumbs{color:#e6f2f5}
 .phone .bigbtn{position:absolute;left:50%;bottom:62px;top:auto;transform:translateX(-50%);z-index:3;white-space:nowrap;font-family:Shrikhand,serif;font-style:italic;font-size:19px;padding:12px 22px;background:var(--mustard);color:var(--ink);border:3px solid #000;box-shadow:5px 5px 0 #000;cursor:pointer;line-height:1.1}
 .show.open .phone .bigbtn{display:none}
 @media (max-width:700px){.phone .stagebox{width:min(100%,320px)}}
+.show.open .phone .stagebox canvas{touch-action:none}
