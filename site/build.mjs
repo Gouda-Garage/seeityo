@@ -23,6 +23,7 @@ fs.mkdirSync(DIST, { recursive: true });
 
 // ---------- assets ----------
 const fonts = [
+  ["inter", "inter-latin-400-normal.woff2"], ["inter", "inter-latin-600-normal.woff2"], ["inter", "inter-latin-800-normal.woff2"], ["inter", "inter-latin-900-normal.woff2"],
   ["rye", "rye-latin-400-normal.woff2"],
   ["shrikhand", "shrikhand-latin-400-normal.woff2"],
   ["space-mono", "space-mono-latin-400-normal.woff2"],
@@ -101,23 +102,23 @@ function layout({ title, desc, p, body, ld = [], type = "website", showTicker = 
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
-<meta name="theme-color" content="#e4571d">
+<meta name="theme-color" content="#5b21d6">
 <link rel="icon" href="data:,">
 <link rel="alternate" type="application/rss+xml" title="${esc(cfg.name)} articles" href="${href("/feed.xml")}">
-<link rel="preload" href="${href("/fonts/rye-latin-400-normal.woff2")}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${href("/fonts/inter-latin-800-normal.woff2")}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${href("/css/style.css")}?v=${BUILD_ID}">
 ${ldTags}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-${showTicker ? `<div class="ticker" aria-hidden="true"><span>${tick}</span></div>` : ""}
-<div class="topnav"><a class="logo" href="${href("/")}">See It Yo</a>
-<nav><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${cfg.releasesUrl}">Download</a></nav></div>
+<div class="topnav"><div class="in"><a class="logo" href="${href("/")}"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16s5-9 14-9 14 9 14 9-5 9-14 9S2 16 2 16z" fill="none" stroke="#5b21d6" stroke-width="2.6"/><circle cx="16" cy="16" r="5.2" fill="#5b21d6"/></svg>See It Yo</a>
+<nav><a href="${href("/")}#how">How it works</a><a href="${href("/")}#why">Why See It Yo</a><a href="${href("/articles/")}">Articles</a><a href="${href("/")}#faq">FAQ</a></nav>
+<a class="navcta" href="${cfg.apkUrl}">Get the Android beta</a></div></div>
 <main id="main">
 ${body}
 </main>
 <footer>
-<div class="big">See It Yo.</div>
+<div class="big">See It Yo</div>
 <p>Leave the glasses at home.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
 </footer>
@@ -134,128 +135,109 @@ const fineHtml = FINE.concat(FINE).map(([h, t]) => `<h3>${esc(h)}</h3><p>${esc(t
 const latest = articles.slice(0, 3).map((a) => `<li><a href="${href(`/articles/${a.slug}/`)}">${esc(a.title)}</a><div class="kicker">${esc(a.category)} · ${fmtDate(a.date)}</div></li>`).join("");
 
 const landing = `
-<header class="hero cine" id="top">
-  <div class="hero-in">
-    <div class="tag">Leave the glasses at home.</div>
-    <h1>See It<span>Yo.</span></h1>
-    <p class="lede">Leave your reading glasses at home. Save See It Yo to your home screen, tap it, and small print blows up big and sharp. No camera hassle.</p>
-    <div class="strip"><span class="pill live">Android beta: live now</span><span class="pill soon">Google Play: coming soon</span><span class="pill">iPhone: later</span></div>
-    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#why">Why it exists</a></div>
-      </div>
-</header>
-
-<section class="show" id="demo" data-stage>
-  <div class="wrap">
-    <h2>Tap. Read. Done.</h2>
-    <p class="sub">Your phone's camera in a dark restaurant: tiny, dim, blurry, and a pain to fix. Now tap See It Yo. The small print is already blown up and lit.</p>
-    <div class="tabs" role="group" aria-label="Pick a scene">
-      <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
-      <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
-      <button class="tab" type="button" data-pick="label" aria-pressed="false">Tiny label</button>
+<section class="hero2" id="top" data-stage>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow">Small text shouldn't be a big problem</div>
+      <h1>See it.<br>Read it.<br><span>Done.</span></h1>
+      <p class="lead">Leave your reading glasses at home. Save See It Yo to your home screen, tap it, and small print blows up big and sharp. No camera hassle.</p>
+      <div class="badges"><a class="badge" href="${cfg.apkUrl}"><small>Free beta for</small><b>Android</b></a><span class="badge off"><small>Coming soon to</small><b>Google Play</b></span></div>
+      <p class="eyebrow">Early build · free to try · saves nothing</p>
     </div>
-    <div class="phone">
-      <div class="stagebox">
-        <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive phone demo: a dim blurry camera view that becomes sharp and zoomed when you open See It Yo"></canvas>
-        <div class="hud" data-state aria-live="polite"><span class="chip live" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen</span><span class="chip zoomread" data-zoom>1.0×</span><span class="torchbtn" data-torch aria-hidden="true">🔦</span></div>
-        <div class="hint" data-hint>Your regular camera. Tiny, dim, blurry.</div>
-        <button class="bigbtn" type="button" data-full aria-pressed="false">Open See It Yo</button>
+    <div class="hero-demo" id="demo">
+      <div class="bubble before">BEFORE<span>Hard to read.</span></div>
+      <div class="bubble after">AFTER<span>Big, sharp and lit.</span></div>
+      <div class="phone">
+        <div class="stagebox">
+          <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive phone demo: a dim blurry camera view that becomes sharp and zoomed when you open See It Yo"></canvas>
+          <div class="hud" data-state aria-live="polite"><span class="chip live" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen</span><span class="chip zoomread" data-zoom>1.0×</span><span class="torchbtn" data-torch aria-hidden="true">🔦</span></div>
+          <div class="hint" data-hint>Your regular camera. Tiny, dim, blurry.</div>
+          <button class="bigbtn" type="button" data-full aria-pressed="false">Open See It Yo</button>
+        </div>
       </div>
+      <div class="pills" role="group" aria-label="Pick a scene">
+        <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
+        <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
+        <button class="tab" type="button" data-pick="label" aria-pressed="false">Tiny label</button>
+      </div>
+      <p class="dcap"><span data-label>Dark restaurant. Menu print, candle light.</span> Once it's open, move your mouse (or drag) to pan, click to freeze.</p>
+      <p class="dcap dim">Simulation. The real app uses your phone's camera.</p>
     </div>
-    <p class="fine caption"><span data-label>Dark restaurant. Menu print, candle light.</span></p>
-    <p class="fine caption">Once it's open: move your mouse (or drag) to pan around the page · click to freeze · click again to go live</p>
-    <p class="fine caption dim">Simulation. The real app uses your phone's camera.</p>
   </div>
 </section>
 
-<section class="beta" id="try">
-  <div class="wrap">
-    <div class="kicker">Android beta · try it now</div>
-    <h2>Help us test it.</h2>
+<section class="easy" id="how"><div class="wrap">
+  <div class="eyebrow">It's as easy as</div>
+  <h2>One tap. That's it.</h2>
+  <div class="steps3">
+    <div class="step"><div class="n">1</div><div><h3>Save</h3><p>Put See It Yo on your home screen once.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h3>Tap</h3><p>It opens already zoomed in, and turns the light on by itself when it's dark.</p></div></div>
+    <div class="step"><div class="n">3</div><div><h3>Read</h3><p>Small print, big and sharp. Tap to freeze it, then pinch and drag around.</p></div></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>See It Yo helps you read what matters.</h2>
+  <div class="uses"><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 2-3 4.5-3 7h3v11"/></svg></div><b>Menus</b><span>Restaurants, bars, coffee shops</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v3l2 3v12H7V9l2-3z"/><path d="M7 14h10"/></svg></div><b>Labels</b><span>Ingredients, bottles, packaging</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg></div><b>Instructions</b><span>Appliances, products, manuals</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg></div><b>Price tags</b><span>Shopping and everyday labels</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg></div><b>TV &amp; screens</b><span>Captions and scores, across the room</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg></div><b>Documents</b><span>Receipts, forms, small text</span></div></div>
+</div></section>
+
+<section id="why"><div class="wrap">
+  <h2>Never get caught needing your glasses.</h2>
+  <p class="sub">Menus, labels, receipts, the fine print on everything. You've got your phone on you anyway. Save See It Yo to your home screen and you're covered. No hassling with your camera, nothing to think about.</p>
+  <div class="vs">
+    <div class="col bad"><h3>Your camera app</h3><ol><li>Unlock phone</li><li>Hunt for the camera</li><li>Pinch to zoom</li><li>Fight the focus</li><li>Dark? Find the flashlight</li><li>Photo saved to your gallery you never wanted</li></ol></div>
+    <div class="col good"><h3>See It Yo</h3><ol><li>Tap the icon on your home screen</li><li>Read</li></ol><p class="big">That's it. Already zoomed. Light on when it's dark. Saves nothing.</p></div>
+  </div>
+</div></section>
+
+<section class="betab" id="try"><div class="wrap"><div class="grid">
+  <div>
+    <div class="eyebrow">Android beta · try it now</div>
+    <h2 style="margin-top:8px">Help us test it.</h2>
     <p>See It Yo is in early testing on Android. Download it free, point it at a menu, a label, or the TV across the room, and tell us if it worked. That's the whole deal.</p>
-    <ol class="steps">
-      <li><div><strong>Tap the download button.</strong> Your phone may say this type of file can harm your device. That's the standard warning for any app that isn't from Google Play yet.</div></li>
-      <li><div><strong>Open the file.</strong> If it asks, allow installs from your browser or Files app one time, go back, and tap Install.</div></li>
-      <li><div><strong>Open See It Yo and read something small.</strong> Point, pinch, tap to freeze.</div></li>
+    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Download for Android</a><a class="btn alt" href="${href("/feedback/")}">Tell us how it went</a></div>
+    <p class="note">Android ${esc(cfg.minAndroid)}+ · version ${esc(cfg.version)} · no photos saved · no account · no ads · no tracking</p>
+    <p class="note">Want a heads-up when it hits Google Play? <a href="mailto:${cfg.email}?subject=${encodeURIComponent("Tell me when See It Yo hits Google Play")}">Email us</a>.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:22px;margin-bottom:6px">Install in 3 steps</h3>
+    <ol>
+      <li><strong>Tap the download button.</strong> Your phone may warn that this type of file can harm your device. That's the standard warning for any app that isn't from Google Play yet.</li>
+      <li><strong>Open the file.</strong> If it asks, allow installs from your browser or Files app one time, go back, and tap Install.</li>
+      <li><strong>Add it to your home screen and read something small.</strong></li>
     </ol>
-    <div class="btnrow" style="justify-content:flex-start"><a class="btn" href="${cfg.apkUrl}">Download for Android</a><a class="btn alt" href="${href("/feedback/")}">Tell us how it went</a></div>
-    <p class="fine" style="text-align:left;margin-top:14px">Android ${esc(cfg.minAndroid)}+ · version ${esc(cfg.version)} · no photos saved · no account · no ads · no tracking</p>
-    <p>Want a heads-up when it hits Google Play? <a href="mailto:${cfg.email}?subject=${encodeURIComponent("Tell me when See It Yo hits Google Play")}">Email us</a> and we'll tell you.</p>
+    <p class="note">iPhone: not yet. A softer <a href="${cfg.browserUrl}">browser version</a> works in a pinch, but a browser can't use your phone's real zoom lens.</p>
   </div>
-</section>
-
-<section class="demo nogl-only" id="demo-fallback" hidden>
-  <div class="wrap">
-    <h2>Go on. Try to read that.</h2>
-    <div class="tools"><button class="btn small" data-lights type="button">Kill the lights</button></div>
-    <div class="lensbox" id="lensbox" role="img" aria-label="Demo: a block of tiny print with a magnifying lens you can drag over it">
-      <div class="fineprint">${fineHtml}</div>
-    </div>
-    <p class="fine hint">Drag the lens over the print</p>
-  </div>
-</section>
-
-<section class="why" id="why"><div class="wrap">
-<div class="kicker">Why this exists</div>
-<h2>Never get caught needing your glasses.</h2>
-<p class="sub">Menus, labels, receipts, the fine print on everything. You've got your phone on you anyway. Save See It Yo to your home screen and you're covered, no hassling with your camera, nothing to think about.</p>
-<div class="vs">
-<div class="col bad"><h3>Your camera app</h3><ol><li>Unlock phone</li><li>Hunt for the camera</li><li>Pinch to zoom</li><li>Fight the focus</li><li>Dark? Find the flashlight</li><li>Photo saved to your gallery you never wanted</li></ol></div>
-<div class="col good"><h3>See It Yo</h3><ol><li>Press the button on your home screen</li><li>Read</li></ol><p style="margin:14px 0 0"><strong>That's it.</strong> It opens already zoomed in, turns the light on when it's dark, and saves nothing.</p></div>
 </div></div></section>
-
-<section id="how"><div class="wrap">
-  <h2>Three moves.<br>That's the app.</h2>
-  <p>No splash screen. No menu. No tutorial. You open it, it's already zoomed, you read.</p>
-  <div class="three">
-    <div class="card"><div class="n">1</div><h3>Tap the icon</h3><p>The rear camera opens already zoomed in. Works from the lock screen too.</p></div>
-    <div class="card"><div class="n">2</div><h3>Point &amp; read</h3><p>Menu. Label. Receipt. The TV across the room. Pinch to go bigger. It turns the flashlight on by itself when it's dark.</p></div>
-    <div class="card"><div class="n">3</div><h3>Tap to freeze</h3><p>Hold it still, pinch and drag around the frozen frame, tap again to go live. Close it and it's gone.</p></div>
-  </div>
-</div></section>
-
-<section class="dark-sec" id="dark"><div class="wrap">
-  <h2>Dark restaurant?<br>Handled.</h2>
-  <p>The flashlight comes on when the room says so. You never hunt for a button, and you never wave your phone around at the table like a flare gun.</p>
-  <button class="btn" data-lights type="button">Kill the lights</button>
-  <p class="fine" style="margin-top:12px">Scroll back up. Same lens. Different mood.</p>
-</div></section>
 
 <section id="nos"><div class="wrap">
   <h2>What it won't do.</h2>
-  <p>The list of things we left out is longer than the list of things we put in. On purpose.</p>
-  <div class="stamps"><span class="stamp">No photos saved</span><span class="stamp">No account</span><span class="stamp">No ads</span><span class="stamp">No AI</span><span class="stamp">No tracking</span><span class="stamp">No paywall mid-read</span><span class="stamp">No tutorial</span></div>
-</div></section>
-
-<section id="install"><div class="wrap">
-  <h2>Get it.</h2>
-  <div class="two">
-    <div class="card"><div class="kicker">Android · ready to test</div><h3 style="font-family:Shrikhand,serif;font-weight:400;font-size:28px;margin:6px 0">Android</h3>
-      <ol><li>Tap the big button. It downloads SeeItYo.apk.</li><li>Open it. If your phone grumbles about "unknown apps," allow it this once.</li><li>Tap the icon. Read something small.</li></ol>
-      <a class="btn" href="${cfg.apkUrl}">Download for Android</a>
-      <p class="fine" style="text-align:left;margin-top:12px">Early build, made to be tested. If it sucks somewhere, <a href="${href("/feedback/")}">tell us</a>.</p></div>
-    <div class="card"><div class="kicker">iPhone · not yet</div><h3 style="font-family:Shrikhand,serif;font-weight:400;font-size:28px;margin:6px 0">iPhone</h3>
-      <p>Apple charges a toll before anyone can install an app without a cable. We're proving this thing works on Android first, then we pay the toll.</p>
-      <p>In the meantime there's a browser version. It works, but a browser can't use your phone's real zoom lens, so it's softer. Fine in a pinch, not the real thing.</p>
-      <a class="btn alt" href="${cfg.browserUrl}">Open browser version</a></div>
-  </div>
+  <p class="sub">The list of things we left out is longer than the list of things we put in. On purpose.</p>
+  <div class="chips"><span class="chip2">No photos saved</span><span class="chip2">No account</span><span class="chip2">No ads</span><span class="chip2">No AI</span><span class="chip2">No tracking</span><span class="chip2">No paywall mid-read</span><span class="chip2">No tutorial</span></div>
 </div></section>
 
 <section id="price"><div class="wrap">
   <h2>Cheap. Once.</h2>
-  <p>When it leaves testing: no subscription, ever, and never a paywall in the middle of reading something.</p>
+  <p class="sub">When it leaves testing: no subscription, ever, and never a paywall in the middle of reading something.</p>
   <div class="price">
-    <div class="card"><div class="kicker">Free</div><div class="amt">3</div><p>reads a month. Enough to find out if it's for you.</p></div>
-    <div class="card"><div class="kicker">Forever</div><div class="amt">$1.99</div><p>one time. Unlimited reading. That's the whole price list.</p></div>
+    <div class="card"><div class="k">Free</div><div class="amt">3</div><p>reads a month. Enough to find out if it's for you.</p></div>
+    <div class="card"><div class="k">Forever</div><div class="amt">$1.99</div><p>one time. Unlimited reading. That's the whole price list.</p></div>
   </div>
 </div></section>
 
-${latest ? `<section><div class="wrap"><h2>Fresh reading.</h2><ul class="list">${latest}</ul><p><a href="${href("/articles/")}">All articles →</a></p></div></section>` : ""}
+${latest ? `<section><div class="wrap" style="max-width:780px"><h2>Fresh reading.</h2><ul class="list" style="margin-top:20px">${latest}</ul><p style="text-align:center"><a href="${href("/articles/")}">All articles →</a></p></div></section>` : ""}
 
 <section id="faq"><div class="wrap">
   <h2>Questions.</h2>
   ${faqHtml(FAQ)}
 </div></section>
-<div class="sticky"><a class="btn" href="${cfg.apkUrl}">Try it: free Android beta</a></div>`;
+
+<section class="final"><div class="wrap">
+  <h2>A clearer world is just a tap away.</h2>
+  <p>Download See It Yo and leave your glasses at home.</p>
+  <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Get the Android beta</a></div>
+</div></section>
+<div class="sticky"><a class="btn" href="${cfg.apkUrl}">Get the free Android beta</a></div>`;
 
 const appLd = {
   "@context": "https://schema.org",
