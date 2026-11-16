@@ -79,6 +79,8 @@ const all = fs.existsSync(artDir) ? fs.readdirSync(artDir).filter((f) => f.endsW
 const articles = all.filter((a) => FUTURE || a.date <= TODAY).sort((a, b) => (a.date < b.date ? 1 : -1));
 
 // ---------- layout ----------
+import { createHash } from "node:crypto";
+const BUILD_ID = createHash("md5").update(["src/css/style.css","src/js/site.js","src/js/scenes.js"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("")).digest("hex").slice(0, 8);
 function layout({ title, desc, p, body, ld = [], type = "website", showTicker = false, scenes = false }) {
   const canon = abs(p);
   const ldTags = ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join("\n");
@@ -103,7 +105,7 @@ function layout({ title, desc, p, body, ld = [], type = "website", showTicker = 
 <link rel="icon" href="data:,">
 <link rel="alternate" type="application/rss+xml" title="${esc(cfg.name)} articles" href="${href("/feed.xml")}">
 <link rel="preload" href="${href("/fonts/rye-latin-400-normal.woff2")}" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="${href("/css/style.css")}">
+<link rel="stylesheet" href="${href("/css/style.css")}?v=${BUILD_ID}">
 ${ldTags}
 </head>
 <body>
@@ -119,7 +121,7 @@ ${body}
 <p>Save it. Tap it. Read it. Built in a Denver garage.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
 </footer>
-<script src="${href("/js/site.js")}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}" defer></script>` : ""}
+<script src="${href("/js/site.js")}?v=${BUILD_ID}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}?v=${BUILD_ID}" defer></script>` : ""}
 </body>
 </html>`;
 }
