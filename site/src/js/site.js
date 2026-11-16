@@ -10,9 +10,11 @@
     });
   });
 
-  // Lens demo
+  // Lens demo (text fallback, only used when WebGL is unavailable)
+  function initLens() {
   var box = document.getElementById("lensbox");
-  if (box) {
+  if (box && !box._init) {
+    box._init = true;
     var base = box.querySelector(".fineprint");
     var lens = document.createElement("div");
     lens.className = "lens";
@@ -43,6 +45,8 @@
     window.addEventListener("resize", function () { place(box.clientWidth / 2, 90); });
     place(box.clientWidth / 2, 90);
   }
+  }
+  window.SIY = { fallback: function () { var fb = document.querySelector(".nogl-only"); if (fb) fb.hidden = false; initLens(); } };
 
   // Feedback form -> opens the person's own email app. Nothing is sent to us by the website.
   var f = document.getElementById("fb");
@@ -62,5 +66,12 @@
       location.href = "mailto:" + to + "?subject=" + encodeURIComponent("See It Yo beta feedback") +
         "&body=" + encodeURIComponent(lines.join("\n"));
     });
+  }
+
+  // Scroll reveals (skipped for reduced motion)
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("js");
+    var io = new IntersectionObserver(function (en) { en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }); }, { threshold: 0.12 });
+    document.querySelectorAll(".card, section h2, .stamp, details, .steps li, .list li").forEach(function (el, i) { el.classList.add("reveal"); el.style.transitionDelay = (i % 4) * 70 + "ms"; io.observe(el); });
   }
 })();

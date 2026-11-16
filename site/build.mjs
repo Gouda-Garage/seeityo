@@ -31,6 +31,7 @@ const fonts = [
 for (const [pkg, file] of fonts) copy(path.join(ROOT, "node_modules/@fontsource", pkg, "files", file), `fonts/${file}`);
 copy(path.join(ROOT, "src/css/style.css"), "css/style.css");
 copy(path.join(ROOT, "src/js/site.js"), "js/site.js");
+copy(path.join(ROOT, "src/js/scenes.js"), "js/scenes.js");
 // fix relative font URLs: css lives in /css, fonts in /fonts -> ../fonts works as written
 
 // ---------- shared facts (single source of truth) ----------
@@ -78,7 +79,7 @@ const all = fs.existsSync(artDir) ? fs.readdirSync(artDir).filter((f) => f.endsW
 const articles = all.filter((a) => FUTURE || a.date <= TODAY).sort((a, b) => (a.date < b.date ? 1 : -1));
 
 // ---------- layout ----------
-function layout({ title, desc, p, body, ld = [], type = "website", showTicker = false }) {
+function layout({ title, desc, p, body, ld = [], type = "website", showTicker = false, scenes = false }) {
   const canon = abs(p);
   const ldTags = ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join("\n");
   const tick = TICKS.concat(TICKS).map((t) => `${esc(t)} &nbsp;✦&nbsp; `).join("");
@@ -118,7 +119,7 @@ ${body}
 <p>Tiny print. One tap. Built in a Denver garage.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
 </footer>
-<script src="${href("/js/site.js")}" defer></script>
+<script src="${href("/js/site.js")}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}" defer></script>` : ""}
 </body>
 </html>`;
 }
@@ -131,14 +132,38 @@ const fineHtml = FINE.concat(FINE).map(([h, t]) => `<h3>${esc(h)}</h3><p>${esc(t
 const latest = articles.slice(0, 3).map((a) => `<li><a href="${href(`/articles/${a.slug}/`)}">${esc(a.title)}</a><div class="kicker">${esc(a.category)} · ${fmtDate(a.date)}</div></li>`).join("");
 
 const landing = `
-<header class="hero" id="top">
-  <div class="tag">Tiny print. One tap.</div>
-  <h1>See It<span>Yo.</span></h1>
-  <p class="lede">Small print sucks. Your phone is already reading glasses. One tap and it's zoomed in. No fiddling. No BS.</p>
-  <div class="strip"><span class="pill live">Android beta: live now</span><span class="pill soon">Google Play: coming soon</span><span class="pill">iPhone: later</span></div>
-  <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#install">How to install</a></div>
-  <p class="fine" style="margin-top:14px">Early build · free to try · saves nothing</p>
+<header class="hero cine" id="top" data-stage>
+  <canvas data-scene="menu" data-lens="115" aria-hidden="true"></canvas>
+  <div class="shade"></div>
+  <div class="hero-in">
+    <div class="tag">Tiny print. One tap.</div>
+    <h1>See It<span>Yo.</span></h1>
+    <p class="lede">Small print sucks. Your phone is already reading glasses. One tap and it's zoomed in. No fiddling. No BS.</p>
+    <div class="strip"><span class="pill live">Android beta: live now</span><span class="pill soon">Google Play: coming soon</span><span class="pill">iPhone: later</span></div>
+    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#demo">See it work</a></div>
+    <p class="fine" style="margin-top:14px">Early build · free to try · saves nothing</p>
+  </div>
 </header>
+
+<section class="show" id="demo" data-stage>
+  <div class="wrap">
+    <div class="kicker">Simulated camera view</div>
+    <h2>Go on. Try to read that.</h2>
+    <p class="sub">This is what small print looks like through a phone camera in real life: dim, grainy, out of focus. Move the lens over it. That's See It Yo.</p>
+    <div class="tabs" role="group" aria-label="Pick a scene">
+      <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
+      <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
+      <button class="tab" type="button" data-pick="label" aria-pressed="false">Tiny label</button>
+    </div>
+    <div class="stagebox">
+      <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive demo: a blurry, dim camera view of small print with a lens you can move to read it"></canvas>
+      <div class="hud" data-state aria-live="polite"><span class="chip" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen · drag to pan</span><span class="chip torch on" data-torch>Auto light</span></div>
+    </div>
+    <p class="fine caption"><span data-label>Dark restaurant. Menu print, candle light.</span></p>
+    <p class="fine caption">Move to look · Click to freeze · Drag to pan · Click again to go live</p>
+    <p class="fine caption dim">Simulation. The real app uses your phone's camera.</p>
+  </div>
+</section>
 
 <section class="beta" id="try">
   <div class="wrap">
@@ -156,7 +181,7 @@ const landing = `
   </div>
 </section>
 
-<section class="demo" id="demo">
+<section class="demo nogl-only" id="demo-fallback" hidden>
   <div class="wrap">
     <h2>Go on. Try to read that.</h2>
     <div class="tools"><button class="btn small" data-lights type="button">Kill the lights</button></div>
@@ -240,7 +265,7 @@ const siteLd = { "@context": "https://schema.org", "@type": "WebSite", name: cfg
 write("index.html", layout({
   title: "See It Yo: Free Android Magnifier App for Small Print | Tiny print. One tap.",
   desc: "Free Android beta that turns your phone into reading glasses. One tap opens the camera already zoomed in, light on automatically. No photos saved.",
-  p: "/", body: landing, ld: [siteLd, appLd, faqLd(FAQ)], showTicker: true,
+  p: "/", body: landing, ld: [siteLd, appLd, faqLd(FAQ)], showTicker: true, scenes: true,
 }));
 
 // ---------- feedback ----------
