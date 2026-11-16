@@ -1,4 +1,4 @@
-package com.bigread.app
+package com.seeityo.app
 
 import android.Manifest
 import android.content.Context
@@ -50,7 +50,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class Prefs(ctx: Context) {
-    private val p = ctx.getSharedPreferences("big", Context.MODE_PRIVATE)
+    private val p = ctx.getSharedPreferences("seeityo", Context.MODE_PRIVATE)
     var defaultZoom: Float get() = p.getFloat("zoom", 4f); set(v) = p.edit().putFloat("zoom", v).apply()
     var haptics: Boolean get() = p.getBoolean("haptics", true); set(v) = p.edit().putBoolean("haptics", v).apply()
     var autoTorch: Boolean get() = p.getBoolean("autoTorch", true); set(v) = p.edit().putBoolean("autoTorch", v).apply()

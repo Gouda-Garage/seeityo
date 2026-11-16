@@ -9,7 +9,7 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BIG">
+        android:theme="@style/Theme.SeeItYo">
         <activity
             android:name=".MainActivity"
             android:exported="true"

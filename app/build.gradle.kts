@@ -5,14 +5,14 @@ plugins {
 }
 
 android {
-    namespace = "com.bigread.app"
+    namespace = "com.seeityo.app"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.bigread.app"
+        applicationId = "com.seeityo.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = 4
+        versionName = "0.4"
     }
     buildTypes {
         release { isMinifyEnabled = false; signingConfig = signingConfigs.getByName("debug") }
