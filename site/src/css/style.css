@@ -192,3 +192,31 @@ body.dark .topnav,body.dark .crumbs{color:#e6f2f5}
 .bigbtn{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;font-family:Shrikhand,serif;font-style:italic;font-size:24px;background:var(--mustard);color:var(--ink);border:3px solid #000;box-shadow:5px 5px 0 #000;padding:14px 28px;cursor:pointer;line-height:1.1}
 .bigbtn:hover{transform:translateX(-50%) translateY(-2px)}
 .bigbtn:active{box-shadow:2px 2px 0 #000;transform:translateX(-50%) translateY(2px)}
+
+/* compact top: what it does + try it above the fold */
+.hero.cine{min-height:0;padding:34px 20px 22px;display:block;background:#0a1a24}
+.hero.cine h1{font-size:clamp(54px,9vw,96px);margin:6px 0 0}
+.hero.cine .lede{margin:14px auto;max-width:640px;font-size:21px;padding:12px 18px}
+.hero.cine .strip{margin:10px 0}
+.hero.cine .btnrow{margin:12px 0 0}
+.show{padding:10px 0 60px}
+.show h2{margin:0 0 6px;font-size:clamp(26px,4vw,38px)}
+.show .sub{margin:0 0 14px}
+.stagebox canvas{height:clamp(380px,56vh,600px)}
+
+/* tighter top */
+.hero.cine{padding:18px 16px 14px}
+.hero.cine .tag{display:none}
+.hero.cine h1{font-size:clamp(46px,8vw,78px);margin:0;line-height:1}
+.hero.cine h1 span{display:inline;margin-left:.2em}
+.hero.cine .lede{margin:10px auto;font-size:19px;padding:8px 14px;max-width:560px}
+.hero.cine .strip{display:none}
+.hero.cine .btnrow{margin:8px 0 0}
+.show{padding-top:4px}
+.show h2{font-size:clamp(22px,3.4vw,30px)}
+.show .sub{margin-bottom:10px}
+.tabs{margin-bottom:10px}
+.stagebox canvas{height:clamp(300px,52vh,560px)}
+@media (max-width:700px){.hero.cine .btn.alt{display:none}.hero.cine .btn{font-size:17px;padding:12px 16px}.hero.cine .lede{font-size:17px}}
+.bigbtn{bottom:auto;top:14px;font-size:20px;padding:11px 20px}
+.hud{top:auto;bottom:12px}

@@ -132,24 +132,20 @@ const fineHtml = FINE.concat(FINE).map(([h, t]) => `<h3>${esc(h)}</h3><p>${esc(t
 const latest = articles.slice(0, 3).map((a) => `<li><a href="${href(`/articles/${a.slug}/`)}">${esc(a.title)}</a><div class="kicker">${esc(a.category)} · ${fmtDate(a.date)}</div></li>`).join("");
 
 const landing = `
-<header class="hero cine" id="top" data-stage>
-  <canvas data-scene="menu" data-lens="115" aria-hidden="true"></canvas>
-  <div class="shade"></div>
+<header class="hero cine" id="top">
   <div class="hero-in">
     <div class="tag">Save it. Tap it. Read it.</div>
     <h1>See It<span>Yo.</span></h1>
-    <p class="lede">Put it on your home screen. Press one big button. Read whatever you need. No digging through your camera, no pinching, no fiddling.</p>
+    <p class="lede">Press one button. Small print gets big, sharp and lit. No camera fiddling.</p>
     <div class="strip"><span class="pill live">Android beta: live now</span><span class="pill soon">Google Play: coming soon</span><span class="pill">iPhone: later</span></div>
-    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#demo">See it work</a></div>
-    <p class="fine" style="margin-top:14px">Early build · free to try · saves nothing</p>
-  </div>
+    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#why">Why it exists</a></div>
+      </div>
 </header>
 
 <section class="show" id="demo" data-stage>
   <div class="wrap">
-    <div class="kicker">Simulated camera view</div>
-    <h2>Go on. Try to read that.</h2>
-    <p class="sub">This is what small print looks like through a phone camera in real life: dim, grainy, out of focus. Now press the button. That's the whole app: the screen goes big, sharp and lit. Nothing to pinch, nothing to focus.</p>
+    <h2>Try it right here.</h2>
+    <p class="sub">Dim, grainy, blurry. Now press the button.</p>
     <div class="tabs" role="group" aria-label="Pick a scene">
       <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
       <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
