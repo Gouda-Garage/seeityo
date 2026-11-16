@@ -22,6 +22,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
@@ -55,7 +58,13 @@ class Prefs(ctx: Context) {
     var haptics: Boolean get() = p.getBoolean("haptics", true); set(v) = p.edit().putBoolean("haptics", v).apply()
     var autoTorch: Boolean get() = p.getBoolean("autoTorch", true); set(v) = p.edit().putBoolean("autoTorch", v).apply()
     var onboarded: Boolean get() = p.getBoolean("onboarded", false); set(v) = p.edit().putBoolean("onboarded", v).apply()
+    var pro: Boolean get() = p.getBoolean("pro", false); set(v) = p.edit().putBoolean("pro", v).apply()
 }
+
+const val SITE_URL = "https://seeityo.com"
+const val SUPPORT_EMAIL = "support@seeityo.com"
+// Flip to true once Google Play Billing is wired up. Until then Pro shows a "coming soon" screen and everything is free.
+const val PRO_ENABLED = false
 
 val SiyPurple = Color(0xFF5B21D6)
 val SiyInk = Color(0xFF0E0B1A)
@@ -77,7 +86,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 val prefs = remember { Prefs(this) }
-                if (permissionState) {
+                var onboarding by remember { mutableStateOf(!prefs.onboarded) }
+                if (onboarding) {
+                    Onboarding(
+                        buttonLabel = if (permissionState) "Start" else "Allow camera & start",
+                        onDone = {
+                            prefs.onboarded = true; onboarding = false
+                            if (!permissionState) permissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    )
+                } else if (permissionState) {
                     CameraScreen(prefs)
                 } else {
                     PermissionScreen(
@@ -88,7 +106,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        if (!permissionState) permissionLauncher.launch(Manifest.permission.CAMERA)
+        if (!permissionState && Prefs(this).onboarded) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
     override fun onResume() {
@@ -139,6 +157,9 @@ fun CameraScreen(prefs: Prefs) {
     var fScale by remember { mutableFloatStateOf(1f) }
     var fOffset by remember { mutableStateOf(Offset.Zero) }
     var showSettings by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showHow by remember { mutableStateOf(false) }
+    var showPro by remember { mutableStateOf(false) }
     var hintVisible by remember { mutableStateOf(true) }
 
     fun applyZoom(z: Float) {
@@ -242,8 +263,20 @@ fun CameraScreen(prefs: Prefs) {
         if (hintVisible) Pill(if (frozen == null) "Tap to freeze · Pinch to zoom" else "Tap to resume · Pinch & drag", Modifier.align(Alignment.BottomCenter).padding(bottom = 26.dp), bold = false)
 
         if (hasFlash) RoundBtn(if (torchOn) "🔦" else "🔦", Modifier.align(Alignment.BottomStart).padding(start = 14.dp, bottom = 84.dp), active = torchOn) { autoTorched = true; setTorch(!torchOn) }
-        RoundBtn("⚙", Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 84.dp)) { showSettings = true }
+        RoundBtn("☰", Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 84.dp)) { showMenu = true }
+        if (showHow) Onboarding(buttonLabel = "Got it", onDone = { showHow = false })
     }
+
+    if (showMenu) MenuSheet(
+        onClose = { showMenu = false },
+        onSettings = { showMenu = false; showSettings = true },
+        onHow = { showMenu = false; showHow = true },
+        onPro = { showMenu = false; showPro = true },
+        onShare = { showMenu = false; shareApp(context) },
+        onFeedback = { showMenu = false; sendFeedback(context, "See It Yo feedback") },
+        onPrivacy = { showMenu = false; openUrl(context, "$SITE_URL/privacy/") }
+    )
+    if (showPro) ProSheet(onClose = { showPro = false }, onTellUs = { showPro = false; sendFeedback(context, "What I'd pay for in See It Yo Pro") })
 
     if (showSettings) SettingsSheet(prefs, zoomRatio, onZoomDefault = { prefs.defaultZoom = it; applyZoom(it) }, onClose = { showSettings = false })
 }
@@ -292,7 +325,150 @@ fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, 
             HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Text("One-tap trigger: Samsung → Settings → Advanced features → Side button → Double press → See It Yo.  Pixel → Settings → System → Gestures → Quick Tap → See It Yo.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text("See It Yo v0.5 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
+            Text("See It Yo v0.6 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
+        }
+    }
+}
+
+
+fun openUrl(ctx: Context, url: String) {
+    try { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) {}
+}
+
+fun shareApp(ctx: Context) {
+    val i = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, "See It Yo")
+        putExtra(Intent.EXTRA_TEXT, "See It Yo: a free Android magnifier. One tap and small print gets big, sharp and lit. Leave your reading glasses at home. $SITE_URL")
+    }
+    try { ctx.startActivity(Intent.createChooser(i, "Share See It Yo")) } catch (_: Exception) {}
+}
+
+fun sendFeedback(ctx: Context, subject: String) {
+    val i = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$SUPPORT_EMAIL")).apply { putExtra(Intent.EXTRA_SUBJECT, subject) }
+    try { ctx.startActivity(i) } catch (_: Exception) {}
+}
+
+@Composable
+fun Step(num: String, title: String, body: String) {
+    Row(Modifier.padding(bottom = 18.dp), verticalAlignment = Alignment.Top) {
+        Box(Modifier.size(40.dp).clip(CircleShape).background(SiyTint), contentAlignment = Alignment.Center) {
+            Text(num, color = SiyPurple, fontWeight = FontWeight.Black, fontSize = 18.sp)
+        }
+        Spacer(Modifier.width(14.dp))
+        Column {
+            Text(title, color = SiyInk, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp)
+            Text(body, color = SiyMute, fontSize = 16.sp, lineHeight = 22.sp)
+        }
+    }
+}
+
+@Composable
+fun Onboarding(buttonLabel: String, onDone: () -> Unit) {
+    var page by remember { mutableIntStateOf(0) }
+    val last = 3
+    Column(Modifier.fillMaxSize().background(SiyBg).statusBarsPadding().navigationBarsPadding().padding(horizontal = 28.dp, vertical = 20.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                repeat(4) { i ->
+                    Box(Modifier.padding(end = 6.dp).height(8.dp).width(if (i == page) 24.dp else 8.dp).clip(RoundedCornerShape(99.dp)).background(if (i == page) SiyPurple else Color(0xFFD9D2F0)))
+                }
+            }
+            if (page < last) Text("Skip", color = SiyMute, fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { page = last }.padding(8.dp))
+        }
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 32.dp)) {
+            when (page) {
+                0 -> {
+                    Text("SEE IT.", fontSize = 56.sp, fontWeight = FontWeight.Black, color = SiyInk, letterSpacing = (-2).sp, lineHeight = 52.sp)
+                    Text("READ IT.", fontSize = 56.sp, fontWeight = FontWeight.Black, color = SiyInk, letterSpacing = (-2).sp, lineHeight = 52.sp)
+                    Text("DONE.", fontSize = 56.sp, fontWeight = FontWeight.Black, color = SiyPurple, letterSpacing = (-2).sp, lineHeight = 52.sp)
+                    Spacer(Modifier.height(22.dp))
+                    Text("Leave your reading glasses at home. See It Yo opens already zoomed in, so menus, labels and fine print are big and sharp. No camera fiddling.", color = SiyInk, fontSize = 18.sp, lineHeight = 26.sp)
+                }
+                1 -> {
+                    Text("Point. Tap. Read.", fontSize = 34.sp, fontWeight = FontWeight.Black, color = SiyInk)
+                    Spacer(Modifier.height(22.dp))
+                    Step("1", "Point at the small print", "It opens already zoomed in. Nothing to set up.")
+                    Step("2", "Tap to freeze", "Holds the page perfectly still. Then pinch to zoom more and drag to move around.")
+                    Step("3", "Tap again to go live", "Double-tap to snap back to your default zoom.")
+                    Step("4", "Dark room?", "It brightens by itself and turns the flashlight on if it has to. The torch button is there too.")
+                }
+                2 -> {
+                    Text("Make it one tap.", fontSize = 34.sp, fontWeight = FontWeight.Black, color = SiyInk)
+                    Spacer(Modifier.height(10.dp))
+                    Text("Open it without hunting for the icon:", color = SiyMute, fontSize = 17.sp)
+                    Spacer(Modifier.height(18.dp))
+                    Step("•", "Samsung", "Settings, Advanced features, Side button, Double press, See It Yo.")
+                    Step("•", "Pixel", "Settings, System, Gestures, Quick Tap, See It Yo.")
+                    Step("•", "Any phone", "Long-press the See It Yo icon and drag it to your home screen.")
+                    Text("You can replay this any time from the menu.", color = SiyMute, fontSize = 14.sp)
+                }
+                else -> {
+                    Text("Private by design.", fontSize = 34.sp, fontWeight = FontWeight.Black, color = SiyInk)
+                    Spacer(Modifier.height(22.dp))
+                    Step("✓", "Nothing is saved", "No photos, no recordings. Frames only exist while you're looking.")
+                    Step("✓", "No account, no ads, no tracking", "It doesn't even ask for internet access.")
+                    Step("✓", "Camera only", "That's the one thing it needs. Tap below and say yes.")
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (page > 0) Text("Back", color = SiyMute, fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { page-- }.padding(horizontal = 14.dp, vertical = 16.dp))
+            Button(onClick = { if (page < last) page++ else onDone() }, modifier = Modifier.weight(1f).height(58.dp), shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SiyPurple, contentColor = Color.White)) {
+                Text(if (page < last) "Next" else buttonLabel, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+            }
+        }
+    }
+}
+
+@Composable
+fun MenuRow(icon: String, title: String, sub: String, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { onClick() }.padding(vertical = 12.dp, horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(44.dp).clip(CircleShape).background(SiyTint), contentAlignment = Alignment.Center) { Text(icon, fontSize = 20.sp) }
+        Spacer(Modifier.width(14.dp))
+        Column { Text(title, color = SiyInk, fontSize = 17.sp, fontWeight = FontWeight.Bold); Text(sub, color = SiyMute, fontSize = 13.sp) }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MenuSheet(onClose: () -> Unit, onSettings: () -> Unit, onHow: () -> Unit, onPro: () -> Unit, onShare: () -> Unit, onFeedback: () -> Unit, onPrivacy: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = Color.White) {
+        Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 32.dp).verticalScroll(rememberScrollState())) {
+            Text("See It Yo", fontSize = 28.sp, fontWeight = FontWeight.Black, color = SiyInk, modifier = Modifier.padding(start = 6.dp, bottom = 8.dp))
+            MenuRow("⭐", "See It Yo Pro", if (PRO_ENABLED) "Unlock everything" else "Coming soon. Free during beta.", onPro)
+            MenuRow("⚙", "Settings", "Zoom, flashlight, haptics", onSettings)
+            MenuRow("❓", "How it works", "Replay the quick tutorial", onHow)
+            MenuRow("📤", "Share with a friend", "Text it, post it, send it", onShare)
+            MenuRow("💬", "Send feedback", "Tell us what's broken or missing", onFeedback)
+            MenuRow("🔒", "Privacy", "Nothing is saved. Ever.", onPrivacy)
+            Spacer(Modifier.height(8.dp))
+            Text("See It Yo v0.6 beta", color = SiyMute, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProSheet(onClose: () -> Unit, onTellUs: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = Color.White) {
+        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 36.dp).verticalScroll(rememberScrollState())) {
+            Text("See It Yo Pro", fontSize = 30.sp, fontWeight = FontWeight.Black, color = SiyInk)
+            Text(if (PRO_ENABLED) "Everything unlocked." else "Coming soon. Everything is free during the beta.", color = SiyPurple, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(16.dp))
+            Text("The magnifier, freeze, zoom and flashlight stay free. Pro will be extras on top. Ideas we're weighing:", color = SiyMute, fontSize = 15.sp, lineHeight = 21.sp)
+            Spacer(Modifier.height(12.dp))
+            listOf("Read-aloud for the text you're looking at", "High-contrast and reading-friendly color modes", "Higher zoom steps and sharper stabilizing", "Save a frozen frame to your gallery").forEach {
+                Text("•  $it", color = SiyInk, fontSize = 16.sp, lineHeight = 24.sp)
+            }
+            Spacer(Modifier.height(22.dp))
+            Button(onClick = onTellUs, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SiyPurple, contentColor = Color.White)) {
+                Text(if (PRO_ENABLED) "Upgrade" else "Tell us what you'd pay for", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+            }
         }
     }
 }
