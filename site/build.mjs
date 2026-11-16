@@ -125,7 +125,7 @@ ${body}
 <footer>
 <div class="big">See It Yo</div>
 <p>Leave the glasses at home.</p>
-<p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${href("/feed.xml")}">RSS</a></p>
+<p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="#" data-share data-url="${abs("/")}">Share</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${href("/feed.xml")}">RSS</a></p>
 <p class="copy">© ${new Date().getFullYear()} See It Yo. All rights reserved. See It Yo is an early build.</p>
 </footer>
 <script src="${href("/js/site.js")}?v=${BUILD_ID}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}?v=${BUILD_ID}" defer></script>` : ""}
@@ -201,7 +201,7 @@ const landing = `
     <div class="eyebrow">Android beta · try it now</div>
     <h2 style="margin-top:8px">Help us test it.</h2>
     <p>See It Yo is in early testing on Android. Download it free, point it at a menu, a label, or the TV across the room, and tell us if it worked. That's the whole deal.</p>
-    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Download for Android</a><a class="btn alt" href="${href("/feedback/")}">Tell us how it went</a></div>
+    <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Download for Android</a><a class="btn alt" href="${href("/feedback/")}">Tell us how it went</a><button type="button" class="btn alt" data-share data-url="${abs("/")}">Share with a friend</button></div>
     <div class="safe"><strong>Your phone will show a warning. That's normal.</strong> Android warns about every app that doesn't come from Google Play, no matter who made it. It isn't a verdict on this one. Here's what you can check yourself: See It Yo asks for exactly two permissions, camera and vibration. It does not ask for internet access, so it can't send anything anywhere. No account, no ads, no tracking, no photos saved. The source code is public, so anyone can read exactly what it does. We're putting it on Google Play next so the warning goes away.</div>
     <p class="note">Android ${esc(cfg.minAndroid)}+ · version ${esc(cfg.version)} · no photos saved · no account · no ads · no tracking</p>
     <p class="note">Want a heads-up when it hits Google Play? <a href="mailto:${cfg.email}?subject=${encodeURIComponent("Tell me when See It Yo hits Google Play")}">Email us</a>.</p>

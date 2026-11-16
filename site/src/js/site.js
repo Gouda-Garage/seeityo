@@ -1,5 +1,25 @@
 // No analytics, no trackers. Just the lens demo, the light switch and the feedback mailto builder.
 (function () {
+
+  // Share button: native share sheet on phones (texts, Instagram, WhatsApp...), copy link elsewhere
+  document.querySelectorAll("[data-share]").forEach(function (b) {
+    var label = b.textContent;
+    b.addEventListener("click", function (e) {
+      e.preventDefault();
+      var url = b.getAttribute("data-url") || location.origin + "/";
+      var text = "See It Yo: a free Android magnifier. One tap and small print gets big, sharp and lit. Leave your reading glasses at home.";
+      if (navigator.share) {
+        navigator.share({ title: "See It Yo", text: text, url: url }).catch(function () {});
+        return;
+      }
+      function done() { b.textContent = "Link copied"; setTimeout(function () { b.textContent = label; }, 2200); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { window.prompt("Copy this link:", url); });
+      } else {
+        window.prompt("Copy this link:", url);
+      }
+    });
+  });
   // Light switch
   document.querySelectorAll("[data-lights]").forEach(function (b) {
     b.addEventListener("click", function () {
