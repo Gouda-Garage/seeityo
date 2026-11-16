@@ -118,7 +118,7 @@ ${body}
 </main>
 <footer>
 <div class="big">See It Yo.</div>
-<p>Save it. Tap it. Read it. Built in a Denver garage.</p>
+<p>Leave the glasses at home. Built in a Denver garage.</p>
 <p><a href="${href("/articles/")}">Articles</a><a href="${href("/feedback/")}">Feedback</a><a href="${href("/privacy/")}">Privacy</a><a href="${href("/terms/")}">Terms</a><a href="${cfg.browserUrl}">Browser version</a><a href="${cfg.repoUrl}">Source</a><a href="${href("/feed.xml")}">RSS</a></p>
 </footer>
 <script src="${href("/js/site.js")}?v=${BUILD_ID}" defer></script>${scenes ? `\n<script src="${href("/js/scenes.js")}?v=${BUILD_ID}" defer></script>` : ""}
@@ -136,9 +136,9 @@ const latest = articles.slice(0, 3).map((a) => `<li><a href="${href(`/articles/$
 const landing = `
 <header class="hero cine" id="top">
   <div class="hero-in">
-    <div class="tag">Save it. Tap it. Read it.</div>
+    <div class="tag">Leave the glasses at home.</div>
     <h1>See It<span>Yo.</span></h1>
-    <p class="lede">Press one button. Small print gets big, sharp and lit. No camera fiddling.</p>
+    <p class="lede">Leave your reading glasses at home. Save See It Yo to your home screen, tap it, and small print blows up big and sharp. No camera hassle.</p>
     <div class="strip"><span class="pill live">Android beta: live now</span><span class="pill soon">Google Play: coming soon</span><span class="pill">iPhone: later</span></div>
     <div class="btnrow"><a class="btn" href="${cfg.apkUrl}">Try it now: free Android beta</a><a class="btn alt" href="#why">Why it exists</a></div>
       </div>
@@ -146,8 +146,8 @@ const landing = `
 
 <section class="show" id="demo" data-stage>
   <div class="wrap">
-    <h2>This is the whole app.</h2>
-    <p class="sub">That's your regular camera in a dark restaurant: tiny, dim, blurry. Now open See It Yo. It starts already zoomed in, with the light on.</p>
+    <h2>Tap. Read. Done.</h2>
+    <p class="sub">Your phone's camera in a dark restaurant: tiny, dim, blurry, and a pain to fix. Now tap See It Yo. The small print is already blown up and lit.</p>
     <div class="tabs" role="group" aria-label="Pick a scene">
       <button class="tab" type="button" data-pick="menu" aria-pressed="true">Dark restaurant</button>
       <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
@@ -196,8 +196,8 @@ const landing = `
 
 <section class="why" id="why"><div class="wrap">
 <div class="kicker">Why this exists</div>
-<h2>Reading small print should be easy.</h2>
-<p class="sub">Your phone can already zoom in. Getting it to do that is the pain. See It Yo skips the pain. It's made for convenience, so you can get on with your day.</p>
+<h2>Never get caught needing your glasses.</h2>
+<p class="sub">Menus, labels, receipts, the fine print on everything. You've got your phone on you anyway. Save See It Yo to your home screen and you're covered, no hassling with your camera, nothing to think about.</p>
 <div class="vs">
 <div class="col bad"><h3>Your camera app</h3><ol><li>Unlock phone</li><li>Hunt for the camera</li><li>Pinch to zoom</li><li>Fight the focus</li><li>Dark? Find the flashlight</li><li>Photo saved to your gallery you never wanted</li></ol></div>
 <div class="col good"><h3>See It Yo</h3><ol><li>Press the button on your home screen</li><li>Read</li></ol><p style="margin:14px 0 0"><strong>That's it.</strong> It opens already zoomed in, turns the light on when it's dark, and saves nothing.</p></div>
@@ -274,7 +274,7 @@ const appLd = {
 const siteLd = { "@context": "https://schema.org", "@type": "WebSite", name: cfg.name, url: abs("/") };
 
 write("index.html", layout({
-  title: "See It Yo: Free Android Magnifier App for Small Print | Save it. Tap it. Read it.",
+  title: "See It Yo: Free Android Magnifier App for Small Print | Leave the glasses at home.",
   desc: "Free Android beta that turns your phone into reading glasses. One tap opens the camera already zoomed in, light on automatically. No photos saved.",
   p: "/", body: landing, ld: [siteLd, appLd, faqLd(FAQ)], showTicker: true, scenes: true,
 }));
