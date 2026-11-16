@@ -59,7 +59,7 @@
         "What did you point it at? " + (d.get("target") || "-"),
         "How fast was it readable after tapping the icon? " + (d.get("speed") || "-"),
         "Phone: " + (d.get("phone") || "-"),
-        "Would you pay $1.99 once to keep it? " + (d.get("pay") || "-"),
+        "Would you pay for an app like this? " + (d.get("pay") || "-"),
         "What annoyed you: " + (d.get("annoy") || "-")
       ];
       var to = f.getAttribute("data-to");

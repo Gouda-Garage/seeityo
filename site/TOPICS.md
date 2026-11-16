@@ -4,7 +4,7 @@ Articles live in `site/articles/YYYY-MM-DD-slug.md`. Future-dated files are held
 
 ## Rules (read before writing)
 - Answer first: a one-to-two sentence `<div class="answer">` block at the top that fully answers the question.
-- Facts about the app come ONLY from `site/config.json`, the FAQ in `site/build.mjs`, and `README.md`. Never claim a feature the app doesn't have. The app: opens rear camera already zoomed, pinch zoom, tap to freeze, auto flashlight when dark, no photos saved, no account, no ads, no AI/OCR/text-to-speech, Android 8.0+, free beta, planned 3 free reads a month then $1.99 once. Not a medical device.
+- Facts about the app come ONLY from `site/config.json`, the FAQ in `site/build.mjs`, and `README.md`. Never claim a feature the app doesn't have. The app: opens rear camera already zoomed, pinch zoom, tap to freeze, auto flashlight when dark, no photos saved, no account, no ads, no AI/OCR/text-to-speech, Android 8.0+, free beta (do not mention future pricing). Not a medical device.
 - No made-up statistics, studies, reviews, user counts or quotes. If a claim could have changed, search the web and verify at writing time, or leave it out.
 - Medicine, dosage and safety topics: always say to ask a pharmacist or person; the app is a magnifier, not a medical device.
 - Don't call it a "brand". Don't name competitors with negative claims.

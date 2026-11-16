@@ -43,7 +43,7 @@ const FAQ = [
   ["Will it work on the TV across the room?", "That's the test we're running right now: reading captions and scores from the couch in a dark room. Try it on your phone and tell us how it went."],
   ["Is it a medical thing?", "No. It's a magnifier. Don't rely on it alone for medicine labels, dosages or safety warnings. If it matters, ask a pharmacist or a person."],
   ["What phones does it work on?", `Android ${cfg.minAndroid} or newer with a rear camera. A flashlight helps in the dark but isn't required.`],
-  ["Is it free?", "Free while we test. When it leaves testing the plan is 3 free reads a month, then $1.99 once to unlock it forever. No subscription, and never a paywall in the middle of reading something."],
+  ["Is it free?", "Yes. It's free while we test. If that ever changes, we'll say so here first."],
   ["Why isn't it on Google Play?", "It's coming. We're testing with real people first so it's good by the time it gets there. For now you install the file directly, and your phone will warn you because the file isn't from the store yet."],
 ];
 const FINE = [
@@ -214,16 +214,7 @@ const landing = `
 <section id="nos"><div class="wrap">
   <h2>What it won't do.</h2>
   <p class="sub">The list of things we left out is longer than the list of things we put in. On purpose.</p>
-  <div class="chips"><span class="chip2">No photos saved</span><span class="chip2">No account</span><span class="chip2">No ads</span><span class="chip2">No AI</span><span class="chip2">No tracking</span><span class="chip2">No paywall mid-read</span><span class="chip2">No tutorial</span></div>
-</div></section>
-
-<section id="price"><div class="wrap">
-  <h2>Cheap. Once.</h2>
-  <p class="sub">When it leaves testing: no subscription, ever, and never a paywall in the middle of reading something.</p>
-  <div class="price">
-    <div class="card"><div class="k">Free</div><div class="amt">3</div><p>reads a month. Enough to find out if it's for you.</p></div>
-    <div class="card"><div class="k">Forever</div><div class="amt">$1.99</div><p>one time. Unlimited reading. That's the whole price list.</p></div>
-  </div>
+  <div class="chips"><span class="chip2">No photos saved</span><span class="chip2">No account</span><span class="chip2">No ads</span><span class="chip2">No AI</span><span class="chip2">No tracking</span><span class="chip2">No tutorial</span></div>
 </div></section>
 
 ${latest ? `<section><div class="wrap" style="max-width:780px"><h2>Fresh reading.</h2><ul class="list" style="margin-top:20px">${latest}</ul><p style="text-align:center"><a href="${href("/articles/")}">All articles →</a></p></div></section>` : ""}
@@ -276,7 +267,7 @@ write("feedback/index.html", layout({
 <fieldset><legend>2. What did you point it at?</legend>${radios("target", ["A menu", "The TV", "A label or receipt", "Something else"])}</fieldset>
 <fieldset><legend>3. After tapping the icon, how fast was it readable?</legend>${radios("speed", ["Under 2 seconds", "A few seconds", "Too slow"])}</fieldset>
 <fieldset><legend>4. What phone do you have?</legend><input type="text" name="phone" placeholder="Example: Samsung Galaxy S23"></fieldset>
-<fieldset><legend>5. Would you pay $1.99 once to keep it?</legend>${radios("pay", ["Yes", "Maybe", "No"])}<label>What annoyed you?<textarea name="annoy" rows="3"></textarea></label></fieldset>
+<fieldset><legend>5. Would you pay for an app like this?</legend>${radios("pay", ["Yes", "Maybe", "No"])}<label>What annoyed you?<textarea name="annoy" rows="3"></textarea></label></fieldset>
 <button class="btn" type="submit">Send it</button>
 </form>
 <p class="fine" style="text-align:left;margin-top:18px">Or just email <a href="mailto:${esc(cfg.email)}">${esc(cfg.email)}</a>.</p>
@@ -347,7 +338,7 @@ write("llms.txt", `# ${cfg.name}
 ## Facts
 - What it is: a free Android beta magnifier app. It opens the rear camera already zoomed in, turns the flashlight on automatically in the dark, and freezes the frame with one tap.
 - Platform: Android ${cfg.minAndroid} or newer, rear camera required. iPhone is not available yet (a softer browser version exists at ${cfg.browserUrl}).
-- Price: free during the beta. Planned: 3 free reads a month, then a one-time $1.99 unlock. No subscription.
+- Price: free during the beta.
 - Privacy: saves no photos or video, no account, no ads, no analytics. The app does not request internet permission.
 - What it does not do: no OCR, no AI, no text-to-speech, no medical interpretation. It is a magnifier, not a medical device.
 - Install: direct APK download from GitHub Releases (${cfg.releasesUrl}). Google Play listing is coming soon.
