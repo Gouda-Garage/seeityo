@@ -183,6 +183,14 @@ const landing = `
   </div>
 </div></section>
 
+<section id="readers"><div class="wrap">
+  <div class="eyebrow">Set it once</div>
+  <h2>Tuned to your readers.</h2>
+  <p class="sub">The first time you open it, pick the strength of readers you normally buy, the + number on the sticker. See It Yo opens at a zoom that fits and remembers it on your phone. Change it any time in Settings.</p>
+  <div class="pills"><span class="pill">+1.00</span><span class="pill">+1.50</span><span class="pill">+2.00</span><span class="pill">+2.50</span><span class="pill">+3.00 or more</span><span class="pill">Not sure</span></div>
+  <p class="sub" style="font-size:14px">It only sets a starting zoom. It isn't a prescription and it isn't medical advice.</p>
+</div></section>
+
 <section><div class="wrap">
   <h2>See It Yo helps you read what matters.</h2>
   <div class="uses"><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 2-3 4.5-3 7h3v11"/></svg></div><b>Menus</b><span>Restaurants, bars, coffee shops</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v3l2 3v12H7V9l2-3z"/><path d="M7 14h10"/></svg></div><b>Labels</b><span>Ingredients, bottles, packaging</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg></div><b>Instructions</b><span>Appliances, products, manuals</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.3"/></svg></div><b>Price tags</b><span>Shopping and everyday labels</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg></div><b>TV &amp; screens</b><span>Captions and scores, across the room</span></div><div class="use"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg></div><b>Documents</b><span>Receipts, forms, small text</span></div></div>

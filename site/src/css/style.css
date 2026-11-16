@@ -51,6 +51,7 @@ section{padding:64px 0}
 .bubble.after{right:-18px;top:30px;background:var(--p);color:#fff}
 [data-stage]:not(.open) .bubble.after,[data-stage].open .bubble.before{opacity:.3;transform:scale(.94)}
 .pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:22px}
+.pill{font-weight:800;font-size:15px;color:var(--p);background:#f2eefd;padding:10px 16px;border-radius:999px}
 .tab{font:inherit;font-weight:600;font-size:14px;color:var(--ink);background:#fff;border:2px solid var(--line);padding:8px 14px;border-radius:999px;cursor:pointer}
 .tab[aria-pressed=true]{background:var(--p);border-color:var(--p);color:#fff}
 .dcap{font-size:13px;color:var(--mute);text-align:center;margin:12px 0 0;max-width:340px}
