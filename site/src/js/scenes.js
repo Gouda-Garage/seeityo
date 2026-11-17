@@ -245,7 +245,14 @@
       } else if (!self.frozen) self.target = p;
       if (!self.running) self.draw(performance.now());
     });
+    // Tapping the demo must never move the page. The canvas is focusable (keyboard users), and browsers scroll a focused
+    // element into view, which threw the page to the bottom on freeze. Block mouse/touch focus and pin the scroll position.
+    var keepY = 0, keepX = 0;
+    function pin() { if (Math.abs(window.scrollY - keepY) > 1 || Math.abs(window.scrollX - keepX) > 1) window.scrollTo(keepX, keepY); }
+    c.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    c.addEventListener("focus", function () { pin(); });
     c.addEventListener("pointerdown", function (e) {
+      keepX = window.scrollX; keepY = window.scrollY;
       var p = self.pos(e); self.lastPointer = performance.now(); self.down = { start: p, last: p, moved: 0 };
       if (!self.frozen) { self.target = p; }
       try { c.setPointerCapture(e.pointerId); } catch (x) { }
@@ -255,6 +262,7 @@
         self.frozen = !self.frozen; self.flash = 1; if (!self.frozen) self.pan = { x: 0, y: 0 }; self.state();
       }
       self.down = null; if (!self.running) self.draw(performance.now());
+      pin(); requestAnimationFrame(function () { pin(); requestAnimationFrame(pin); });
     });
     c.addEventListener("pointercancel", function () { self.down = null; });
     c.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); self.frozen = !self.frozen; self.flash = 1; if (!self.frozen) self.pan = { x: 0, y: 0 }; self.state(); } });

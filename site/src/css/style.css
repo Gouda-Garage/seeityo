@@ -169,3 +169,7 @@ form.fb input[type=text],form.fb textarea{width:100%;font:inherit;padding:10px;b
 footer .copy{font-size:13px;opacity:.7;margin-top:16px}
 .safe{margin-top:18px;padding:16px 18px;border-radius:16px;background:#eef7ee;border:1px solid #b9dcb9;color:#1f3a1f;font-size:15px;line-height:1.5;text-align:left}
 .safe strong{display:block;margin-bottom:4px;font-size:16px}
+
+.hero-demo,.hero-demo *{overflow-anchor:none}
+.stagebox canvas{outline:none;-webkit-tap-highlight-color:transparent}
+.stagebox canvas:focus-visible{outline:3px solid var(--p);outline-offset:3px}
