@@ -254,7 +254,9 @@
     c.addEventListener("focus", function () { pin(); });
     c.addEventListener("pointerdown", function (e) {
       keepX = window.scrollX; keepY = window.scrollY;
-      P[e.pointerId] = { x: e.clientX, y: e.clientY }; self.lastPointer = performance.now();
+      if (e.pointerType === "mouse") { P = {}; pd = 0; } // a mouse is one pointer: drop anything stale
+      else { var now = performance.now(); Object.keys(P).forEach(function (k) { if (now - P[k].t > 1500 && !c.hasPointerCapture(+k)) delete P[k]; }); }
+      P[e.pointerId] = { t: performance.now(),  x: e.clientX, y: e.clientY }; self.lastPointer = performance.now();
       try { c.setPointerCapture(e.pointerId); } catch (x) { }
       if (ids().length === 1) {
         var p = self.pos(e); self.down = { last: p, moved: 0, multi: false };
@@ -263,7 +265,7 @@
     });
     c.addEventListener("pointermove", function (e) {
       var q = P[e.pointerId]; self.lastPointer = performance.now();
-      if (q) { q.x = e.clientX; q.y = e.clientY; }
+      if (q) { q.x = e.clientX; q.y = e.clientY; q.t = performance.now(); }
       var n = ids().length;
       if (n >= 2 && self.full) {
         var d = pinchDist(); if (pd > 0) self.setZoom(self.uz * d / pd); pd = d;
@@ -282,7 +284,7 @@
       if (!self.running) self.draw(performance.now());
     });
     function up(e, cancelled) {
-      delete P[e.pointerId];
+      if (e.pointerType === "mouse") P = {}; else delete P[e.pointerId];
       var n = ids().length;
       if (n === 0) {
         if (!cancelled && self.down && !self.down.multi && self.down.moved < 14 * self.dpr && self.full) self.toggleFreeze();
