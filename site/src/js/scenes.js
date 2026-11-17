@@ -196,7 +196,7 @@
     this.tex = gl.createTexture();
     this.scene = SCENES[this.opts.scene || "menu"];
     this.mouse = { x: 0, y: 0 }; this.target = { x: 0, y: 0 }; this.pan = { x: 0, y: 0 };
-    this.frozen = false; this.full = false; this.fr = 0; this.flash = 0; this.torch = 0; this.t0 = performance.now();
+    this.uz = 1; this.frozen = false; this.full = false; this.fr = 0; this.flash = 0; this.torch = 0; this.t0 = performance.now();
     this.lastPointer = -1e9; this.visible = false; this.running = false; this.dpr = 1; this.down = null;
     this.onState = this.opts.onState || function () { };
     this.resize(); this.bind(); this.observe();
@@ -204,7 +204,7 @@
     window.addEventListener("resize", again); if (window.ResizeObserver) new ResizeObserver(again).observe(canvas);
   }
   Stage.prototype.setScene = function (name) {
-    this.scene = SCENES[name]; this.frozen = false; this.pan = { x: 0, y: 0 }; this.flash = 0; this.paint(); this.state();
+    this.scene = SCENES[name]; this.frozen = false; this.uz = 1; this.pan = { x: 0, y: 0 }; this.flash = 0; this.paint(); this.state();
   };
   Stage.prototype.resize = function () {
     var c = this.canvas, r = c.getBoundingClientRect(); var cw = Math.max(2, r.width), ch = Math.max(2, r.height);
@@ -234,38 +234,76 @@
     this.onState({ frozen: this.frozen, torch: this.scene.torch && !this.frozen ? true : this.scene.torch && this.frozen, dark: this.scene.dark > .5, label: this.scene.label });
   };
   Stage.prototype.pos = function (e) { var r = this.canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * this.dpr, y: (e.clientY - r.top) * this.dpr }; };
+  Stage.prototype.setZoom = function (z) {
+    this.uz = Math.max(1, Math.min(4, z)); this.state(); if (!this.running) this.draw(performance.now());
+  };
+  Stage.prototype.toggleFreeze = function () {
+    this.frozen = !this.frozen; this.flash = this.frozen ? 1 : 0;
+    this.pan = { x: 0, y: 0 }; this.state();
+  };
   Stage.prototype.bind = function () {
-    var self = this, c = this.canvas;
-    c.addEventListener("pointermove", function (e) {
-      var p = self.pos(e); self.lastPointer = performance.now();
-      if (self.down && e.buttons) {
-        if (self.frozen) { self.pan.x -= (p.x - self.down.last.x) / self.scene.zoom; self.pan.y -= (p.y - self.down.last.y) / self.scene.zoom; }
-        self.down.moved += Math.abs(p.x - self.down.last.x) + Math.abs(p.y - self.down.last.y); self.down.last = p;
-        if (!self.frozen) self.target = p;
-      } else if (!self.frozen) self.target = p;
-      if (!self.running) self.draw(performance.now());
-    });
-    // Tapping the demo must never move the page. The canvas is focusable (keyboard users), and browsers scroll a focused
-    // element into view, which threw the page to the bottom on freeze. Block mouse/touch focus and pin the scroll position.
+    var self = this, c = this.canvas, P = {}, pd = 0;
+    function ids() { return Object.keys(P); }
+    function pinchDist() { var k = ids(); var a = P[k[0]], b = P[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); }
+    function toCanvas(x, y) { var r = c.getBoundingClientRect(); return { x: (x - r.left) * self.dpr, y: (y - r.top) * self.dpr }; }
+    function clampT(t) { return { x: Math.max(0, Math.min(c.width, t.x)), y: Math.max(0, Math.min(c.height, t.y)) }; }
+    // Never let a tap move the page or the picture. Block focus-on-click and pin the scroll position.
     var keepY = 0, keepX = 0;
     function pin() { if (Math.abs(window.scrollY - keepY) > 1 || Math.abs(window.scrollX - keepX) > 1) window.scrollTo(keepX, keepY); }
     c.addEventListener("mousedown", function (e) { e.preventDefault(); });
     c.addEventListener("focus", function () { pin(); });
     c.addEventListener("pointerdown", function (e) {
       keepX = window.scrollX; keepY = window.scrollY;
-      var p = self.pos(e); self.lastPointer = performance.now(); self.down = { start: p, last: p, moved: 0 };
-      if (!self.frozen) { self.target = p; }
+      P[e.pointerId] = { x: e.clientX, y: e.clientY }; self.lastPointer = performance.now();
       try { c.setPointerCapture(e.pointerId); } catch (x) { }
+      if (ids().length === 1) {
+        var p = self.pos(e); self.down = { last: p, moved: 0, multi: false };
+        if (!self.full) self.target = p; // lens mode only. In full mode a tap must NOT re-aim the view.
+      } else if (self.down) { self.down.multi = true; pd = pinchDist(); }
     });
-    c.addEventListener("pointerup", function () {
-      if (self.down && self.down.moved < 14 * self.dpr && self.full) {
-        self.frozen = !self.frozen; self.flash = 1; if (!self.frozen) self.pan = { x: 0, y: 0 }; self.state();
+    c.addEventListener("pointermove", function (e) {
+      var q = P[e.pointerId]; self.lastPointer = performance.now();
+      if (q) { q.x = e.clientX; q.y = e.clientY; }
+      var n = ids().length;
+      if (n >= 2 && self.full) {
+        var d = pinchDist(); if (pd > 0) self.setZoom(self.uz * d / pd); pd = d;
+        if (self.down) self.down.multi = true;
+        return;
       }
-      self.down = null; if (!self.running) self.draw(performance.now());
-      pin(); requestAnimationFrame(function () { pin(); requestAnimationFrame(pin); });
+      var p = self.pos(e);
+      if (self.down && n === 1 && (e.buttons || e.pointerType !== "mouse")) {
+        var dx = p.x - self.down.last.x, dy = p.y - self.down.last.y;
+        self.down.moved += Math.abs(dx) + Math.abs(dy); self.down.last = p;
+        if (!self.full) { if (!self.frozen) self.target = p; }
+        else if (self.frozen) { var z = self.scene.zoom * self.uz; self.pan.x -= dx / z; self.pan.y -= dy / z; }
+        else self.target = clampT({ x: self.target.x + dx * 1.3, y: self.target.y + dy * 1.3 });
+      } else if (!self.frozen && e.pointerType === "mouse" && !self.full) self.target = p;
+      else if (!self.frozen && e.pointerType === "mouse" && self.full) self.target = p;
+      if (!self.running) self.draw(performance.now());
     });
-    c.addEventListener("pointercancel", function () { self.down = null; });
-    c.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); self.frozen = !self.frozen; self.flash = 1; if (!self.frozen) self.pan = { x: 0, y: 0 }; self.state(); } });
+    function up(e, cancelled) {
+      delete P[e.pointerId];
+      var n = ids().length;
+      if (n === 0) {
+        if (!cancelled && self.down && !self.down.multi && self.down.moved < 14 * self.dpr && self.full) self.toggleFreeze();
+        self.down = null; pd = 0;
+        if (!self.running) self.draw(performance.now());
+        pin(); requestAnimationFrame(function () { pin(); requestAnimationFrame(pin); });
+      } else if (n === 1 && self.down) {
+        var k = ids()[0]; self.down.last = toCanvas(P[k].x, P[k].y); self.down.multi = true; pd = 0;
+      }
+    }
+    c.addEventListener("pointerup", function (e) { up(e, false); });
+    c.addEventListener("pointercancel", function (e) { up(e, true); });
+    c.addEventListener("wheel", function (e) {
+      if (!self.full || !self.frozen) return;
+      e.preventDefault(); self.setZoom(self.uz * Math.exp(-e.deltaY * 0.0018));
+    }, { passive: false });
+    c.addEventListener("keydown", function (e) {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (self.full) self.toggleFreeze(); }
+      else if (e.key === "+" || e.key === "=") { e.preventDefault(); self.setZoom(self.uz * 1.25); }
+      else if (e.key === "-") { e.preventDefault(); self.setZoom(self.uz / 1.25); }
+    });
   };
   Stage.prototype.observe = function () {
     var self = this;
@@ -291,9 +329,15 @@
     gl.uniform1i(U.uTex, 0); gl.uniform2f(U.uRes, c.width, c.height); var fr = this.fr, cx = c.width / 2, cy = c.height / 2;
     var mx = Math.max(.1, Math.min(.9, this.mouse.x / c.width)) , my = Math.max(.1, Math.min(.9, this.mouse.y / c.height));
     var vx = this.mouse.x + (c.width * (.18 + .64 * (this.mouse.x / c.width)) - this.mouse.x) * fr, vy = this.mouse.y + (c.height * (.15 + .7 * (this.mouse.y / c.height)) - this.mouse.y) * fr;
+    var Z = this.scene.zoom * this.uz, hw = c.width / (2 * Z), hh = c.height / (2 * Z);
+    vx = Math.max(hw * fr, Math.min(c.width - hw * fr, vx)); vy = Math.max(hh * fr, Math.min(c.height - hh * fr, vy));
+    if (this.frozen && this.full) {
+      this.pan.x = Math.max(hw, Math.min(c.width - hw, vx + this.pan.x)) - vx;
+      this.pan.y = Math.max(hh, Math.min(c.height - hh, vy + this.pan.y)) - vy;
+    }
     gl.uniform2f(U.uView, vx, vy);
     gl.uniform2f(U.uMouse, this.mouse.x + (cx - this.mouse.x) * fr, this.mouse.y + (cy - this.mouse.y) * fr); gl.uniform2f(U.uPan, this.pan.x, this.pan.y);
-    gl.uniform1f(U.uR, R); gl.uniform1f(U.uZoom, this.scene.zoom);
+    gl.uniform1f(U.uR, R); gl.uniform1f(U.uZoom, Z);
     gl.uniform1f(U.uTime, t % 100); gl.uniform1f(U.uDark, this.scene.dark); gl.uniform1f(U.uFreeze, this.frozen ? 1 : 0);
     gl.uniform1f(U.uTorch, this.torch); gl.uniform1f(U.uBlur, this.scene.blur * this.dpr); gl.uniform1f(U.uFlash, this.flash);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -314,16 +358,20 @@
           onState: function (s) {
             if (!ui) return;
             ui.querySelector("[data-frozen]").hidden = !s.frozen; ui.querySelector("[data-live]").hidden = s.frozen;
-            var zr = ui.querySelector("[data-zoom]"); if (zr) zr.textContent = (stage && stage.full ? stage.scene.zoom.toFixed(1) + "×" : "1.0×");
-            var hint = tag.querySelector("[data-hint]"); if (hint) hint.textContent = !(stage && stage.full) ? "Your regular camera. Tiny, dim, blurry." : (s.frozen ? "Tap to resume" : "Tap to freeze");
+            var zr = ui.querySelector("[data-zoom]"); if (zr) zr.textContent = (stage && stage.full ? (stage.scene.zoom * stage.uz).toFixed(1) + "×" : "1.0×");
+            var hint = tag.querySelector("[data-hint]"); if (hint) hint.textContent = !(stage && stage.full) ? "Your regular camera. Tiny, dim, blurry." : (s.frozen ? "Pinch to zoom · Drag to move · Tap to resume" : "Drag to aim · Tap to freeze");
             var tr = ui.querySelector("[data-torch]"); if (tr) tr.classList.toggle("on", !!s.torch && !!(stage && stage.full));
+            var zb = tag.querySelector("[data-zbtns]"); if (zb) zb.hidden = !(s.frozen && stage && stage.full);
             var lb = tag.querySelector("[data-label]"); if (lb) lb.textContent = s.label;
           }
         });
         stage.state(); stages.push(stage); cv._stage = stage;
         if (cv.hasAttribute("data-main")) {
           var fb = tag.querySelector("[data-full]");
-          if (fb) fb.addEventListener("click", function () { stage.full = !stage.full; fb.setAttribute("aria-pressed", stage.full); fb.textContent = stage.full ? "Close See It Yo" : "Open See It Yo"; tag.classList.toggle("open", stage.full); stage.frozen = false; stage.pan = { x: 0, y: 0 }; stage.state(); if (!stage.running) stage.draw(performance.now()); });
+          if (fb) fb.addEventListener("click", function () { stage.full = !stage.full; fb.setAttribute("aria-pressed", stage.full); fb.textContent = stage.full ? "Close See It Yo" : "Open See It Yo"; tag.classList.toggle("open", stage.full); stage.frozen = false; stage.uz = 1; stage.pan = { x: 0, y: 0 }; stage.state(); if (!stage.running) stage.draw(performance.now()); });
+          var zi = tag.querySelector("[data-zin]"), zo = tag.querySelector("[data-zout]");
+          if (zi) zi.addEventListener("click", function () { stage.setZoom(stage.uz * 1.35); });
+          if (zo) zo.addEventListener("click", function () { stage.setZoom(stage.uz / 1.35); });
           document.querySelectorAll("[data-pick]").forEach(function (b) {
             b.addEventListener("click", function () {
               document.querySelectorAll("[data-pick]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });

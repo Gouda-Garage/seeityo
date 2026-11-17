@@ -173,3 +173,7 @@ footer .copy{font-size:13px;opacity:.7;margin-top:16px}
 .hero-demo,.hero-demo *{overflow-anchor:none}
 .stagebox canvas{outline:none;-webkit-tap-highlight-color:transparent}
 .stagebox canvas:focus-visible{outline:3px solid var(--p);outline-offset:3px}
+.zbtns{position:absolute;right:12px;bottom:56px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.zbtns[hidden]{display:none}
+.zbtns button{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.62);color:#fff;font:800 24px/1 inherit;cursor:pointer}
+.zbtns button:active{background:var(--p)}

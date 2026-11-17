@@ -159,6 +159,7 @@ const landing = `
           <canvas data-scene="menu" data-main tabindex="0" role="img" aria-label="Interactive phone demo: a dim blurry camera view that becomes sharp and zoomed when you open See It Yo"></canvas>
           <div class="hud" data-state aria-live="polite"><span class="chip live" data-live>Live</span><span class="chip frozen" data-frozen hidden>Frozen</span><span class="chip zoomread" data-zoom>1.0×</span><span class="torchbtn" data-torch aria-hidden="true">🔦</span></div>
           <div class="hint" data-hint>Your regular camera. Tiny, dim, blurry.</div>
+          <div class="zbtns" data-zbtns hidden><button type="button" data-zout aria-label="Zoom out">&minus;</button><button type="button" data-zin aria-label="Zoom in">+</button></div>
           <button class="bigbtn" type="button" data-full aria-pressed="false">Open See It Yo</button>
         </div>
       </div>
@@ -167,7 +168,7 @@ const landing = `
         <button class="tab" type="button" data-pick="tv" aria-pressed="false">TV across the room</button>
         <button class="tab" type="button" data-pick="label" aria-pressed="false">Tiny label</button>
       </div>
-      <p class="dcap"><span data-label>Dark restaurant. Menu print, candle light.</span> Once it's open, move your mouse (or drag) to pan, click to freeze.</p>
+      <p class="dcap"><span data-label>Dark restaurant. Menu print, candle light.</span> Open it, drag to aim, tap to freeze. Then pinch (or scroll, or use + and −) to zoom in and drag to move around. Tap again to go live.</p>
       <p class="dcap dim">Simulation. The real app uses your phone's camera.</p>
     </div>
   </div>
