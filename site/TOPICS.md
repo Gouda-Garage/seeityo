@@ -16,14 +16,7 @@ Articles live in `site/articles/YYYY-MM-DD-slug.md`. Future-dated files are held
 
 ## Backlog (pick in order, mark done by deleting the line)
 ### Dark-room reading
-- How to read a cocktail or wine list in a dim bar
-- How to read seat numbers and signs in a dark movie theater
-- Why your phone flashlight sometimes makes text harder to read
 ### Fine-print fixes
-- How to read faded thermal-paper receipts
-- How to read the tiny sticker on the back of a router or appliance
-- How to read a nutrition label without squinting
-- How to read grocery shelf tags and unit prices
 - How to read hardware and screw packaging in the store aisle
 - How to read the date and tire info on a tire sidewall
 - How to read fine print in a contract or terms page on your phone (not legal advice; ask a professional)
