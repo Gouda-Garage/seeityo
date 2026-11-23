@@ -26,7 +26,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +42,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -169,6 +173,7 @@ fun CameraScreen(prefs: Prefs) {
     var camera by remember { mutableStateOf<Camera?>(null) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     var zoomRatio by remember { mutableFloatStateOf(prefs.defaultZoom) }
+    var startZoom by remember { mutableFloatStateOf(prefs.defaultZoom) }
     var maxZoom by remember { mutableFloatStateOf(8f) }
     var minZoom by remember { mutableFloatStateOf(1f) }
     var torchOn by remember { mutableStateOf(false) }
@@ -192,6 +197,7 @@ fun CameraScreen(prefs: Prefs) {
         zoomRatio = clamped
         c.cameraControl.setZoomRatio(clamped)
     }
+    fun saveStartZoom(z: Float) { prefs.strength = -1; prefs.defaultZoom = z; startZoom = z }
     fun setTorch(on: Boolean) { camera?.cameraControl?.enableTorch(on); torchOn = on }
     fun haptic() { if (prefs.haptics) (context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)?.vibrate(VibrationEffect.createOneShot(30, 90)) }
 
@@ -246,9 +252,10 @@ fun CameraScreen(prefs: Prefs) {
                         camera = cam
                         hasFlash = cam.cameraInfo.hasFlashUnit()
                         cam.cameraInfo.zoomState.observe(lifecycleOwner) { zs ->
-                            if (zs != null) { minZoom = zs.minZoomRatio; maxZoom = zs.maxZoomRatio }
+                            if (zs != null) { minZoom = zs.minZoomRatio; maxZoom = zs.maxZoomRatio; zoomRatio = zs.zoomRatio }
                         }
-                        cam.cameraControl.setZoomRatio(prefs.defaultZoom.coerceIn(1f, cam.cameraInfo.zoomState.value?.maxZoomRatio ?: 8f))
+                        val zs0 = cam.cameraInfo.zoomState.value
+                        cam.cameraControl.setZoomRatio(prefs.defaultZoom.coerceIn(zs0?.minZoomRatio ?: 1f, zs0?.maxZoomRatio ?: 8f))
                     }, ContextCompat.getMainExecutor(ctx))
                 }
             }
@@ -261,12 +268,48 @@ fun CameraScreen(prefs: Prefs) {
             )
         }
 
-        // Gesture layer
+        // Gesture layer.
+        // Pinch lives in its OWN pointerInput and runs on the Initial pass, so the tap handler below can never
+        // swallow a two-finger gesture. Once two fingers are down we consume everything, which also cancels any tap.
         Box(Modifier.fillMaxSize()
             .pointerInput(frozen) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    if (frozen == null) { if (zoom != 1f) applyZoom(zoomRatio * zoom) }
-                    else { fScale = (fScale * zoom).coerceIn(1f, 6f); fOffset += pan }
+                val slop = viewConfiguration.touchSlop
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    var multi = false
+                    var travelled = Offset.Zero
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        val pressed = event.changes.count { it.pressed }
+                        if (pressed >= 2) multi = true
+                        if (multi) {
+                            if (pressed >= 2) {
+                                val zoom = event.calculateZoom()
+                                val pan = event.calculatePan()
+                                if (frozen == null) {
+                                    if (zoom != 1f) applyZoom(zoomRatio * zoom)
+                                } else {
+                                    fScale = (fScale * zoom).coerceIn(1f, 6f)
+                                    val mx = size.width * (fScale - 1f) / 2f
+                                    val my = size.height * (fScale - 1f) / 2f
+                                    fOffset = Offset((fOffset.x + pan.x).coerceIn(-mx, mx), (fOffset.y + pan.y).coerceIn(-my, my))
+                                }
+                            }
+                            event.changes.forEach { it.consume() }
+                        } else if (pressed == 1) {
+                            // One finger: past slop it is a drag, not a tap. Drag pans the frozen frame.
+                            val pan = event.calculatePan()
+                            travelled += pan
+                            if (travelled.getDistance() > slop) {
+                                if (frozen != null) {
+                                    val mx = size.width * (fScale - 1f) / 2f
+                                    val my = size.height * (fScale - 1f) / 2f
+                                    fOffset = Offset((fOffset.x + pan.x).coerceIn(-mx, mx), (fOffset.y + pan.y).coerceIn(-my, my))
+                                }
+                                event.changes.forEach { if (it.positionChanged()) it.consume() }
+                            }
+                        }
+                    } while (event.changes.any { it.pressed })
                 }
             }
             .pointerInput(frozen) {
@@ -277,18 +320,51 @@ fun CameraScreen(prefs: Prefs) {
                             if (bmp != null) { frozen = bmp; fScale = 1f; fOffset = Offset.Zero; haptic(); hintVisible = true }
                         } else { frozen?.recycle(); frozen = null; hintVisible = true }
                     },
-                    onDoubleTap = { if (frozen == null) applyZoom(prefs.defaultZoom) else { fScale = 1f; fOffset = Offset.Zero } }
+                    onDoubleTap = { if (frozen == null) applyZoom(startZoom) else { fScale = 1f; fOffset = Offset.Zero } }
                 )
             })
 
         // HUD
         Pill(if (frozen == null) "LIVE" else "FROZEN", Modifier.align(Alignment.TopCenter).padding(top = 18.dp))
         Pill(String.format("%.1f×", if (frozen == null) zoomRatio else zoomRatio * fScale), Modifier.align(Alignment.TopEnd).padding(top = 18.dp, end = 14.dp))
-        if (hintVisible) Pill(if (frozen == null) "Tap to freeze · Pinch to zoom" else "Tap to resume · Pinch & drag", Modifier.align(Alignment.BottomCenter).padding(bottom = 26.dp), bold = false)
+        if (hintVisible) Pill(if (frozen == null) "Tap to freeze · Pinch or use the buttons" else "Tap to resume · Pinch & drag", Modifier.align(Alignment.TopCenter).padding(top = 66.dp), bold = false)
+
+        if (frozen == null) {
+            // "Make this my start" shows only when the live zoom differs from the saved starting zoom.
+            if (kotlin.math.abs(zoomRatio - startZoom) > 0.05f) {
+                Text("★ Make this my start", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 64.dp, end = 14.dp).clip(RoundedCornerShape(999.dp)).background(Color(0xFFFFD25A))
+                        .pointerInput(Unit) { detectTapGestures(onTap = { saveStartZoom(zoomRatio); haptic() }) }.padding(horizontal = 14.dp, vertical = 10.dp))
+            }
+            // Zoom slider: no pinching needed.
+            if (maxZoom > minZoom) {
+                Box(Modifier.align(Alignment.BottomCenter).padding(start = 80.dp, end = 80.dp, bottom = 84.dp).height(52.dp).fillMaxWidth()
+                    .clip(RoundedCornerShape(999.dp)).background(Color(0x99000000)).padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                    Slider(
+                        value = zoomRatio.coerceIn(minZoom, maxZoom), onValueChange = { applyZoom(it) }, valueRange = minZoom..maxZoom,
+                        colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = SiyPurple, inactiveTrackColor = Color(0x66FFFFFF))
+                    )
+                }
+            }
+            // Big one-tap zoom steps. Tap = zoom. Long-press = make it my starting zoom.
+            Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                listOf(1f, 2f, 4f, 8f).forEach { step ->
+                    val target = step.coerceIn(minZoom, maxZoom)
+                    val sel = kotlin.math.abs(zoomRatio - target) < 0.25f
+                    Box(Modifier.size(width = 68.dp, height = 52.dp).clip(RoundedCornerShape(16.dp))
+                        .background(if (sel) SiyPurple else Color(0x99000000))
+                        .pointerInput(step, minZoom, maxZoom) {
+                            detectTapGestures(onTap = { applyZoom(step) }, onLongPress = { applyZoom(step); saveStartZoom(step.coerceIn(minZoom, maxZoom)); haptic() })
+                        }, contentAlignment = Alignment.Center) {
+                        Text("${step.toInt()}×", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+            }
+        }
 
         if (hasFlash) RoundBtn(if (torchOn) "🔦" else "🔦", Modifier.align(Alignment.BottomStart).padding(start = 14.dp, bottom = 84.dp), active = torchOn) { autoTorched = true; setTorch(!torchOn) }
         RoundBtn("☰", Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 84.dp)) { showMenu = true }
-        if (showHow) Onboarding(prefs = prefs, onStrength = { applyZoom(pickStrength(prefs, it)) }, buttonLabel = "Got it", onDone = { showHow = false })
+        if (showHow) Onboarding(prefs = prefs, onStrength = { startZoom = pickStrength(prefs, it); applyZoom(startZoom) }, buttonLabel = "Got it", onDone = { showHow = false })
     }
 
     if (showMenu) MenuSheet(
@@ -303,9 +379,8 @@ fun CameraScreen(prefs: Prefs) {
     if (showPro) ProSheet(onClose = { showPro = false }, onTellUs = { showPro = false; sendFeedback(context, "What I'd pay for in See It Yo Pro") })
 
     if (showSettings) SettingsSheet(
-        prefs, zoomRatio,
-        onZoomDefault = { prefs.strength = -1; prefs.defaultZoom = it; applyZoom(it) },
-        onStrength = { applyZoom(pickStrength(prefs, it)) },
+        prefs,
+        onResetStart = { prefs.strength = -1; saveStartZoom(4f); applyZoom(4f) },
         onClose = { showSettings = false }
     )
 }
@@ -325,29 +400,17 @@ fun RoundBtn(label: String, modifier: Modifier, active: Boolean = false, onClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, onStrength: (Int) -> Unit, onClose: () -> Unit) {
+fun SettingsSheet(prefs: Prefs, onResetStart: () -> Unit, onClose: () -> Unit) {
     var haptics by remember { mutableStateOf(prefs.haptics) }
     var autoTorch by remember { mutableStateOf(prefs.autoTorch) }
-    var strength by remember { mutableIntStateOf(prefs.strength) }
-    var zoomSel by remember { mutableFloatStateOf(prefs.defaultZoom) }
     ModalBottomSheet(onDismissRequest = onClose, containerColor = Color.White) {
         Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 36.dp).verticalScroll(rememberScrollState())) {
             Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Black, color = SiyInk)
-            Spacer(Modifier.height(16.dp))
-            Text("Reading strength", color = SiyInk, fontSize = 17.sp)
-            Text("The readers you usually use (it's the + number on the sticker). Sets where See It Yo opens. Saved on this phone.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
-            Spacer(Modifier.height(10.dp))
-            StrengthPicker(selected = strength, onPick = { strength = it; zoomSel = READER_STRENGTHS[it].zoom; onStrength(it) })
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column { Text("Default zoom", color = SiyInk, fontSize = 17.sp); Text("Fine-tune where it opens", color = SiyMute, fontSize = 13.sp) }
-                Row { listOf(2f, 3f, 4f, 5f, 6f).forEach { z ->
-                    val sel = zoomSel == z
-                    Text("${z.toInt()}×", color = if (sel) Color.White else SiyInk, fontWeight = FontWeight.Bold, fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 6.dp).clip(RoundedCornerShape(8.dp)).background(if (sel) SiyPurple else SiyTint)
-                            .pointerInput(z) { detectTapGestures { zoomSel = z; strength = -1; onZoomDefault(z) } }.padding(horizontal = 10.dp, vertical = 6.dp))
-                } }
-            }
+            Spacer(Modifier.height(8.dp))
+            Text("Zoom lives on the main screen: slider, 1×/2×/4×/8× buttons, or pinch. Long-press a button, or tap ★ Make this my start, to set where it opens.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
+            Spacer(Modifier.height(14.dp))
+            Button(onClick = onResetStart, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SiyTint, contentColor = SiyPurple)) { Text("Reset starting zoom to 4×", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
             HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column { Text("Auto flashlight", color = SiyInk, fontSize = 17.sp); Text("Turns on by itself when it's dark", color = SiyMute, fontSize = 13.sp) }
@@ -361,7 +424,7 @@ fun SettingsSheet(prefs: Prefs, current: Float, onZoomDefault: (Float) -> Unit, 
             HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Color(0xFFE4DFF2))
             Text("One-tap trigger: Samsung → Settings → Advanced features → Side button → Double press → See It Yo.  Pixel → Settings → System → Gestures → Quick Tap → See It Yo.", color = SiyMute, fontSize = 13.sp, lineHeight = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text("See It Yo v0.7 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
+            Text("See It Yo v0.8 beta · nothing is saved", color = SiyMute, fontSize = 12.sp)
         }
     }
 }
@@ -506,13 +569,13 @@ fun MenuSheet(onClose: () -> Unit, onSettings: () -> Unit, onHow: () -> Unit, on
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 32.dp).verticalScroll(rememberScrollState())) {
             Text("See It Yo", fontSize = 28.sp, fontWeight = FontWeight.Black, color = SiyInk, modifier = Modifier.padding(start = 6.dp, bottom = 8.dp))
             MenuRow("⭐", "See It Yo Pro", if (PRO_ENABLED) "Unlock everything" else "Coming soon. Free during beta.", onPro)
-            MenuRow("⚙", "Settings", "Reading strength, zoom, flashlight", onSettings)
+            MenuRow("⚙", "Settings", "Flashlight, haptics, reset zoom", onSettings)
             MenuRow("❓", "How it works", "Replay the quick tutorial", onHow)
             MenuRow("📤", "Share with a friend", "Text it, post it, send it", onShare)
             MenuRow("💬", "Send feedback", "Tell us what's broken or missing", onFeedback)
             MenuRow("🔒", "Privacy", "Nothing is saved. Ever.", onPrivacy)
             Spacer(Modifier.height(8.dp))
-            Text("See It Yo v0.7 beta", color = SiyMute, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
+            Text("See It Yo v0.8 beta", color = SiyMute, fontSize = 12.sp, modifier = Modifier.padding(start = 6.dp))
         }
     }
 }
